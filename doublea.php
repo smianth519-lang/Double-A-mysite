@@ -1,19 +1,19 @@
  <?php
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $name = $_POST['name'];
-        $email = $_POST['email'];
-        $number = $_POST['number'];
-        $subject = $_POST['subject'];
-        $message = $_POST['message'];
+   
+        $name = htmlspecialchars($_POST['name']);
+        $email = htmlspecialchars($_POST['email']);
+        $number = htmlspecialchars($_POST['number']);
+        $subject = htmlspecialchars($_POST['text']);
+        $message = htmlspecialchars($_POST['message']);
 
-        $to = "doubleawebdesigning@gmail.com";
-        $subject = "New Form Submission from " . $name;
-        $headers = "From: " . $email . "\r\n";
-        $headers .= "Reply-To: " . $email . "\r\n";
-        $headers .= "Content-type: text/plain; charset=utf-8\r\n";
+       $mailheader = "From:" .$name. "" ."". $email ."". $number ."". $subject .">\r\n";
 
-        mail($to, $subject, $message, $headers);
+        $recipient = "doubleawebdesigning@gmail.com";
 
-        echo "Thank you for your submission!";
-    }
+        if (mail($recipient, $subject, $message, $mailheader)) {
+            echo "message sent";
+        } else {
+            die("Error!");
+        }
+    
     ?>
