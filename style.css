@@ -1,4 +1,4 @@
- *{
+*{
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -120,11 +120,68 @@ span{
                 0 0 100px var(--main-color);
 }
 .home-content p{
-    font-size: 1.5rem;
+    font-size: 2rem;
     font-weight: 500;
     line-height: 1.8;
     max-width: 1000px;
 }
+.about .home-content{
+    max-width: 600px;
+}
+.about{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15rem;
+    flex-wrap: wrap;
+}
+.about-img img{
+    width: 20vw;
+    border-radius: 20%;
+    box-shadow: 0 0 25px var(--main-color);
+    cursor: pointer;
+    transition: 0.4s ease-in-out;
+}
+.about-img img:hover{
+    box-shadow: 0 0 25px var(--main-color),
+                0 0 50px var(--main-color),
+                0 0 100px var(--main-color);
+}
+.about-content h2{
+    font-size: 3.5rem;
+    margin-bottom: 2rem;
+}
+
+.heading{
+    font-size: 8rem;
+    text-align: center;
+    margin: 5rem 0;
+}
+.heading span{
+    color: var(--main-color);
+}
+.about-content h3{
+    font-size: 3.5rem;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.about-content p{
+    font-size: 2rem;
+    text-align: center;
+    max-width: 700px;
+    margin: auto;
+    line-height: 1.8;
+}
+.about-content{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    margin-top: 3rem;
+}
+
+
 .social-icons a{
     display: inline-flex;
     justify-content: center;
@@ -210,7 +267,7 @@ span{
 @keyframes words{
     0%,
     20%{
-       content: "Frontend Designer";
+       content: "Website Maintenance";
     }
     21%,
     40%{
@@ -218,15 +275,15 @@ span{
     }
     41%,
     60%{
-        content: "Game Developer";
+        content: "Web Hosting Services";
     }
     61%,
     80%{
-        content: "Logo Designer";
+        content: "Logo Designing";
     }
     81%,
     100%{
-        content: "App Developer";
+        content: "Website Redesign";
     }
 }
 @keyframes typing{
