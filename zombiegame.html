@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="zstyle.css">
 </head>
 <body>
-  <div id="gameContainer">
+ <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="gameUI">
             <div>Health: <span id="health">100</span></div>
@@ -40,6 +40,10 @@
                 <button class="mobile-btn" id="mobileStoreBtn">🏪</button>
                 <button class="mobile-btn" id="mobileWallBtn">🧱</button>
                 <button class="mobile-btn" id="mobilePauseBtn">⏸️</button>
+            </div>
+            <div id="mobileScrollButtons" style="display: none;">
+                <button class="mobile-scroll-btn" id="scrollUpBtn">⬆️</button>
+                <button class="mobile-scroll-btn" id="scrollDownBtn">⬇️</button>
             </div>
         </div>
         
@@ -323,6 +327,23 @@
                         const event = new KeyboardEvent('keydown', { key: 'B', keyCode: 66 });
                         document.dispatchEvent(event);
                     }
+                    
+                    // Show scroll buttons when store is opened and enable canvas scrolling
+                    setTimeout(() => {
+                        const scrollButtons = document.getElementById('mobileScrollButtons');
+                        if (scrollButtons) {
+                            scrollButtons.style.display = 'block';
+                            setTimeout(() => { 
+                                scrollButtons.style.display = 'none'; 
+                            }, 30000); // Auto-hide after 30 seconds
+                        }
+                        
+                        const canvas = document.getElementById('gameCanvas');
+                        if (canvas) {
+                            window.storeIsOpen = true;
+                            setTimeout(() => { window.storeIsOpen = false; }, 30000);
+                        }
+                    }, 100);
                 });
 
                 addMobileButtonListener('mobileWallBtn', function() {
@@ -344,6 +365,33 @@
                     } else if (typeof window.togglePause === 'function') {
                         window.togglePause();
                     }
+                });
+
+                // Add scroll button functionality
+                addMobileButtonListener('scrollUpBtn', function() {
+                    // Multiple methods to scroll up in store
+                    simulateWheelEvent(-120); // Wheel event
+                    
+                    // Key simulation for games that use arrow keys or page up
+                    const upEvent = new KeyboardEvent('keydown', { key: 'ArrowUp', keyCode: 38, bubbles: true });
+                    document.dispatchEvent(upEvent);
+                    
+                    // Try Page Up key
+                    const pageUpEvent = new KeyboardEvent('keydown', { key: 'PageUp', keyCode: 33, bubbles: true });
+                    document.dispatchEvent(pageUpEvent);
+                });
+
+                addMobileButtonListener('scrollDownBtn', function() {
+                    // Multiple methods to scroll down in store
+                    simulateWheelEvent(120); // Wheel event
+                    
+                    // Key simulation for games that use arrow keys or page down
+                    const downEvent = new KeyboardEvent('keydown', { key: 'ArrowDown', keyCode: 40, bubbles: true });
+                    document.dispatchEvent(downEvent);
+                    
+                    // Try Page Down key
+                    const pageDownEvent = new KeyboardEvent('keydown', { key: 'PageDown', keyCode: 34, bubbles: true });
+                    document.dispatchEvent(pageDownEvent);
                 });
 
                 // Export joystick state for game to use
@@ -450,6 +498,7 @@
                     }
                     return originalAddEventListener.call(this, type, listener, options);
                 };
+                
                 // Add mobile store scrolling support
                 let storeScrolling = {
                     startY: 0,
@@ -460,15 +509,25 @@
 
                 // Check for store element and add touch scrolling
                 function initializeStoreScrolling() {
-                    const storeElement = document.getElementById('store') || 
-                                       document.querySelector('.store') ||
-                                       document.querySelector('[class*="store"]') ||
-                                       document.querySelector('[id*="store"]');
+                    // Try multiple approaches to find store elements
+                    const storeSelectors = [
+                        '#store', '.store', '[class*="store"]', '[id*="store"]',
+                        '#shop', '.shop', '[class*="shop"]', '[id*="shop"]',
+                        '.weapon-list', '.item-list', '.inventory',
+                        '[class*="weapon"]', '[class*="item"]', '[class*="inventory"]'
+                    ];
+                    
+                    let storeElement = null;
+                    for (let selector of storeSelectors) {
+                        storeElement = document.querySelector(selector);
+                        if (storeElement) break;
+                    }
                     
                     if (storeElement) {
                         // Add touch scrolling to store
                         storeElement.addEventListener('touchstart', function(e) {
                             if (storeScrolling.isScrolling) return;
+                            e.stopPropagation(); // Prevent interference with other touch handlers
                             
                             const touch = e.touches[0];
                             storeScrolling.isScrolling = true;
@@ -495,6 +554,7 @@
                             
                             // Scroll the store content
                             this.scrollTop -= deltaY;
+                            e.stopPropagation();
                         }, { passive: true });
 
                         storeElement.addEventListener('touchend', function(e) {
@@ -502,8 +562,9 @@
                             storeScrolling.touchId = null;
                         }, { passive: true });
 
-                        console.log('Store touch scrolling initialized');
+                        console.log('Store touch scrolling initialized on:', storeElement);
                     } else {
+                        console.log('No store element found, will retry...');
                         // Retry after a short delay if store not found yet
                         setTimeout(initializeStoreScrolling, 1000);
                     }
@@ -511,6 +572,68 @@
 
                 // Initialize store scrolling
                 initializeStoreScrolling();
+
+                // Add canvas touch scrolling for games that render store on canvas
+                const canvas = document.getElementById('gameCanvas');
+                if (canvas) {
+                    let canvasScroll = {
+                        startY: 0,
+                        isScrolling: false,
+                        touchId: null,
+                        inStoreArea: false
+                    };
+
+                    canvas.addEventListener('touchstart', function(e) {
+                        const touch = e.touches[0];
+                        canvasScroll.startY = touch.clientY;
+                        canvasScroll.touchId = touch.identifier;
+                        canvasScroll.isScrolling = false;
+                        
+                        // Assume store might be open if store button was pressed recently
+                        // You might need to check game state here
+                        setTimeout(() => {
+                            canvasScroll.inStoreArea = true; // Assume we might be in store
+                        }, 100);
+                    }, { passive: true });
+
+                    canvas.addEventListener('touchmove', function(e) {
+                        if (!canvasScroll.inStoreArea) return;
+                        
+                        let ourTouch = null;
+                        for (let i = 0; i < e.touches.length; i++) {
+                            if (e.touches[i].identifier === canvasScroll.touchId) {
+                                ourTouch = e.touches[i];
+                                break;
+                            }
+                        }
+                        
+                        if (!ourTouch) return;
+                        
+                        const deltaY = ourTouch.clientY - canvasScroll.startY;
+                        
+                        if (Math.abs(deltaY) > 10) { // Minimum movement threshold
+                            canvasScroll.isScrolling = true;
+                            
+                            // Simulate wheel events for canvas-based stores
+                            const wheelEvent = new WheelEvent('wheel', {
+                                deltaY: -deltaY * 2, // Amplify and invert
+                                bubbles: true,
+                                cancelable: true
+                            });
+                            canvas.dispatchEvent(wheelEvent);
+                            
+                            canvasScroll.startY = ourTouch.clientY; // Reset for continuous scrolling
+                        }
+                    }, { passive: true });
+
+                    canvas.addEventListener('touchend', function(e) {
+                        canvasScroll.isScrolling = false;
+                        canvasScroll.inStoreArea = false;
+                        canvasScroll.touchId = null;
+                    }, { passive: true });
+
+                    console.log('Canvas touch scrolling initialized');
+                }
 
                 // Also add wheel event simulation for mobile
                 function simulateWheelEvent(delta) {
@@ -562,6 +685,7 @@
                         simulateWheelEvent(scrollAmount);
                     }
                 }, { passive: true });
+
                 console.log('Mobile controls with multiple input methods initialized successfully');
             } else {
                 // Hide mobile controls on desktop
@@ -571,6 +695,7 @@
     </script>
 </body>
 </html>
+
 
 
 
