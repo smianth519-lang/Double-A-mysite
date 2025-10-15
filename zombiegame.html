@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zombie Survivor</title>
+    <link rel="stylesheet" href="zstyle.css">
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="gameUI">
+            <div>Health: <span id="health">100</span></div>
+            <div>Score: <span id="score">0</span></div>
+            <div>Stage: <span id="wave">1</span></div>
+            <div>Player Level: <span id="level">1</span></div>
+            <div>XP: <span id="xp">0/100</span></div>
+            <div>Money: $<span id="currency">0</span></div>
+            <div>Weapon: <span id="currentWeaponName">Pistol</span></div>
+            <div>Zombies: <span id="zombieCount">0</span></div>
+            <div>Tools: <span id="playerTools">X N:0 W:0</span></div>
+            <div id="difficultyDisplay" style="color: #ffaa00; font-size: 8px; font-weight: bold;">NORMAL MODE</div>
+            <div style="color: #888; font-size: 8px; margin-top: 4px;">WASD: Move | T: Auto | B: Store | R: Walls</div>
+            <div style="color: #00ff00; font-size: 8px;">Auto: <span id="autoTargetStatus">ON</span></div>
+        </div>
+        <button id="pauseButton" onclick="togglePause()">⏸</button>
+        <button id="companionButton" onclick="buyCompanion()">+ Add Ally ($100)</button>
+        <button id="fullscreenButton" onclick="toggleFullscreen()">⛶</button>
+        
+        <div id="startMenu">
+            <div class="start-menu-content">
+                <h1 class="game-title">ZOMBIE SURVIVOR</h1>
+                <div class="subtitle">🧟 Defend the Sanctuary 🧟</div>
+                
+                <div class="difficulty-selection">
+                    <h3>🎚️ SELECT DIFFICULTY</h3>
+                    <div class="difficulty-buttons">
+                        <button onclick="startNewGame('easy')" class="difficulty-button easy-mode">
+                            😊 EASY MODE
+                            <div class="difficulty-desc">Relaxed gameplay, forgiving stats</div>
+                        </button>
+                        <button onclick="startNewGame('normal')" class="difficulty-button normal-mode">
+                            🎯 NORMAL MODE
+                            <div class="difficulty-desc">Balanced challenge for most players</div>
+                        </button>
+                        <button onclick="startNewGame('hardcore')" class="difficulty-button hardcore-mode">
+                            💀 HARDCORE MODE
+                            <div class="difficulty-desc">Brutal survival challenge</div>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="menu-options">
+                    <button onclick="showHighScores()" class="menu-button">🏆 HIGH SCORES</button>
+                    <button onclick="showInstructions()" class="menu-button">📖 HOW TO PLAY</button>
+                </div>
+                
+                <div class="game-description">
+                    <p>Survive endless waves of zombies while defending your sanctuary. Use weapons, build walls, and hire allies to stay alive as long as possible!</p>
+                </div>
+                
+                <div class="version-info">v1.0 - Hardcore Edition</div>
+            </div>
+        </div>
+        
+        <div id="pauseOverlay">
+            <div class="pause-title">PAUSED</div>
+            <div class="how-to-play">
+                <h3>🎮 HOW TO PLAY</h3>
+                
+                <div class="controls-section">
+                    <h4>⌨️ Controls</h4>
+                    <div class="control-grid">
+                        <div><strong>WASD</strong> - Move Player</div>
+                        <div><strong>Mouse</strong> - Aim & Auto-fire</div>
+                        <div><strong>T</strong> - Toggle Auto-targeting</div>
+                        <div><strong>B</strong> - Open/Close Store</div>
+                        <div><strong>R</strong> - Rebuild Walls (need tools)</div>
+                        <div><strong>P / ESC</strong> - Pause Game</div>
+                        <div><strong>F11</strong> - Toggle Fullscreen</div>
+                        <div><strong>F</strong> - Skip Level 7 (if stuck)</div>
+                        <div><strong>Mouse Wheel</strong> - Scroll in Store</div>
+                    </div>
+                </div>
+
+                <div class="gameplay-section">
+                    <h4>🎯 Objective</h4>
+                    <p>Survive waves of zombies while defending the sanctuary. Kill zombies to gain XP, level up, and earn money to buy better weapons and supplies.</p>
+                </div>
+
+                <div class="systems-section">
+                    <h4>🛠️ Game Systems</h4>
+                    <div class="system-grid">
+                        <div><strong>🏪 Store:</strong> Buy weapons, tools, and supplies</div>
+                        <div><strong>🧱 Walls:</strong> Protect sanctuary from zombies</div>
+                        <div><strong>👥 Allies:</strong> Hire companions to help fight</div>
+                        <div><strong>🔧 Tools:</strong> Hammer, nails, wood to repair walls</div>
+                        <div><strong>⚡ Safe Zone:</strong> Heal inside the sanctuary</div>
+                        <div><strong>🎯 Auto-Target:</strong> Automatically aims at nearest zombie</div>
+                    </div>
+                </div>
+
+                <div class="tips-section">
+                    <h4>💡 Tips</h4>
+                    <ul>
+                        <li>Stay in the sanctuary to heal</li>
+                        <li>Buy tools early to repair walls</li>
+                        <li>Higher level weapons unlock as you progress</li>
+                        <li>Allies help but cost money to maintain</li>
+                        <li>Use mouse wheel to scroll through all weapons in store</li>
+                        <li>Some weapons have special abilities (pierce, explosive, etc.)</li>
+                    </ul>
+                </div>
+                
+                <div class="pause-buttons">
+                    <button onclick="togglePause()">Resume Game</button>
+                    <button onclick="quitGame()" class="quit-button">Quit to Menu</button>
+                </div>
+            </div>
+        </div>
+        <div id="gameOver">
+            <h2 id="gameOverMessage">Game Over!</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <p>Waves Survived: <span id="finalWave">0</span></p>
+            <div id="newHighScore" style="display: none;">
+                <h3>🎉 NEW HIGH SCORE! 🎉</h3>
+                <input type="text" id="playerName" placeholder="Enter your name" maxlength="20">
+                <button onclick="saveHighScore()">Save Score</button>
+            </div>
+            <button onclick="restartGame()">Play Again</button>
+            <button onclick="showHighScores()">View High Scores</button>
+            <button onclick="returnToMenu()" class="menu-button">Return to Menu</button>
+        </div>
+
+        <div id="highScoresModal" style="display: none;">
+            <div class="modal-content">
+                <h2>🏆 HIGH SCORES 🏆</h2>
+                <div id="highScoresList"></div>
+                <button onclick="closeHighScores()">Close</button>
+                <button onclick="clearHighScores()">Clear All Scores</button>
+                <button onclick="returnToMenu()" class="menu-button">Return to Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="zscript.js"></script>
+</body>
+</html>
