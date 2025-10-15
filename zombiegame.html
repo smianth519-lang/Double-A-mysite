@@ -41,10 +41,6 @@
                 <button class="mobile-btn" id="mobileWallBtn">🧱</button>
                 <button class="mobile-btn" id="mobilePauseBtn">⏸️</button>
             </div>
-            <div id="mobileScrollButtons" style="display: none;">
-                <button class="mobile-scroll-btn" id="scrollUpBtn">⬆️</button>
-                <button class="mobile-scroll-btn" id="scrollDownBtn">⬇️</button>
-            </div>
         </div>
         
         <div id="startMenu">
@@ -327,23 +323,6 @@
                         const event = new KeyboardEvent('keydown', { key: 'B', keyCode: 66 });
                         document.dispatchEvent(event);
                     }
-                    
-                    // Show scroll buttons when store is opened and enable canvas scrolling
-                    setTimeout(() => {
-                        const scrollButtons = document.getElementById('mobileScrollButtons');
-                        if (scrollButtons) {
-                            scrollButtons.style.display = 'block';
-                            setTimeout(() => { 
-                                scrollButtons.style.display = 'none'; 
-                            }, 30000); // Auto-hide after 30 seconds
-                        }
-                        
-                        const canvas = document.getElementById('gameCanvas');
-                        if (canvas) {
-                            window.storeIsOpen = true;
-                            setTimeout(() => { window.storeIsOpen = false; }, 30000);
-                        }
-                    }, 100);
                 });
 
                 addMobileButtonListener('mobileWallBtn', function() {
@@ -365,33 +344,6 @@
                     } else if (typeof window.togglePause === 'function') {
                         window.togglePause();
                     }
-                });
-
-                // Add scroll button functionality
-                addMobileButtonListener('scrollUpBtn', function() {
-                    // Multiple methods to scroll up in store
-                    simulateWheelEvent(-120); // Wheel event
-                    
-                    // Key simulation for games that use arrow keys or page up
-                    const upEvent = new KeyboardEvent('keydown', { key: 'ArrowUp', keyCode: 38, bubbles: true });
-                    document.dispatchEvent(upEvent);
-                    
-                    // Try Page Up key
-                    const pageUpEvent = new KeyboardEvent('keydown', { key: 'PageUp', keyCode: 33, bubbles: true });
-                    document.dispatchEvent(pageUpEvent);
-                });
-
-                addMobileButtonListener('scrollDownBtn', function() {
-                    // Multiple methods to scroll down in store
-                    simulateWheelEvent(120); // Wheel event
-                    
-                    // Key simulation for games that use arrow keys or page down
-                    const downEvent = new KeyboardEvent('keydown', { key: 'ArrowDown', keyCode: 40, bubbles: true });
-                    document.dispatchEvent(downEvent);
-                    
-                    // Try Page Down key
-                    const pageDownEvent = new KeyboardEvent('keydown', { key: 'PageDown', keyCode: 34, bubbles: true });
-                    document.dispatchEvent(pageDownEvent);
                 });
 
                 // Export joystick state for game to use
@@ -695,6 +647,7 @@
     </script>
 </body>
 </html>
+
 
 
 
