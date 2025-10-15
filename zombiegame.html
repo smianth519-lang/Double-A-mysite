@@ -450,7 +450,118 @@
                     }
                     return originalAddEventListener.call(this, type, listener, options);
                 };
-                
+                // Add mobile store scrolling support
+                let storeScrolling = {
+                    startY: 0,
+                    currentY: 0,
+                    isScrolling: false,
+                    touchId: null
+                };
+
+                // Check for store element and add touch scrolling
+                function initializeStoreScrolling() {
+                    const storeElement = document.getElementById('store') || 
+                                       document.querySelector('.store') ||
+                                       document.querySelector('[class*="store"]') ||
+                                       document.querySelector('[id*="store"]');
+                    
+                    if (storeElement) {
+                        // Add touch scrolling to store
+                        storeElement.addEventListener('touchstart', function(e) {
+                            if (storeScrolling.isScrolling) return;
+                            
+                            const touch = e.touches[0];
+                            storeScrolling.isScrolling = true;
+                            storeScrolling.touchId = touch.identifier;
+                            storeScrolling.startY = touch.clientY;
+                            storeScrolling.currentY = touch.clientY;
+                        }, { passive: true });
+
+                        storeElement.addEventListener('touchmove', function(e) {
+                            if (!storeScrolling.isScrolling) return;
+                            
+                            let ourTouch = null;
+                            for (let i = 0; i < e.touches.length; i++) {
+                                if (e.touches[i].identifier === storeScrolling.touchId) {
+                                    ourTouch = e.touches[i];
+                                    break;
+                                }
+                            }
+                            
+                            if (!ourTouch) return;
+                            
+                            const deltaY = ourTouch.clientY - storeScrolling.currentY;
+                            storeScrolling.currentY = ourTouch.clientY;
+                            
+                            // Scroll the store content
+                            this.scrollTop -= deltaY;
+                        }, { passive: true });
+
+                        storeElement.addEventListener('touchend', function(e) {
+                            storeScrolling.isScrolling = false;
+                            storeScrolling.touchId = null;
+                        }, { passive: true });
+
+                        console.log('Store touch scrolling initialized');
+                    } else {
+                        // Retry after a short delay if store not found yet
+                        setTimeout(initializeStoreScrolling, 1000);
+                    }
+                }
+
+                // Initialize store scrolling
+                initializeStoreScrolling();
+
+                // Also add wheel event simulation for mobile
+                function simulateWheelEvent(delta) {
+                    const wheelEvent = new WheelEvent('wheel', {
+                        deltaY: delta,
+                        bubbles: true,
+                        cancelable: true
+                    });
+                    
+                    // Try to dispatch to store element or document
+                    const storeElement = document.getElementById('store') || 
+                                       document.querySelector('.store') ||
+                                       document.querySelector('[class*="store"]') ||
+                                       document.querySelector('[id*="store"]') ||
+                                       document;
+                    
+                    storeElement.dispatchEvent(wheelEvent);
+                }
+
+                // Add swipe gesture support for store scrolling
+                let swipeGesture = {
+                    startY: 0,
+                    threshold: 50, // minimum distance for swipe
+                    restraint: 100, // maximum distance perpendicular to swipe direction
+                    allowedTime: 300 // maximum time allowed to travel distance
+                };
+
+                document.addEventListener('touchstart', function(e) {
+                    // Only handle if we're in the store area
+                    const target = e.target.closest('#store, .store, [class*="store"], [id*="store"]');
+                    if (!target) return;
+                    
+                    const touch = e.changedTouches[0];
+                    swipeGesture.startY = touch.pageY;
+                    swipeGesture.startTime = new Date().getTime();
+                }, { passive: true });
+
+                document.addEventListener('touchend', function(e) {
+                    const target = e.target.closest('#store, .store, [class*="store"], [id*="store"]');
+                    if (!target) return;
+                    
+                    const touch = e.changedTouches[0];
+                    const distY = touch.pageY - swipeGesture.startY;
+                    const elapsedTime = new Date().getTime() - swipeGesture.startTime;
+                    
+                    if (elapsedTime <= swipeGesture.allowedTime && Math.abs(distY) >= swipeGesture.threshold) {
+                        // Simulate wheel scrolling based on swipe direction
+                        const scrollAmount = distY > 0 ? -100 : 100; // Invert for natural scrolling
+                        simulateWheelEvent(scrollAmount);
+                    }
+                }, { passive: true });
                 console.log('Mobile controls with multiple input methods initialized successfully');
             } else {
                 // Hide mobile controls on desktop
@@ -460,5 +571,6 @@
     </script>
 </body>
 </html>
+
 
 
