@@ -16,7 +16,7 @@
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
-            touch-action: manipulation;
+            touch-action: auto;
         }
         
         
@@ -792,7 +792,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            touch-action: manipulation;
+            touch-action: none;
             user-select: none;
         }
 
@@ -834,7 +834,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            touch-action: manipulation;
+            touch-action: none;
             user-select: none;
         }
 
@@ -855,6 +855,7 @@
                 overflow: auto;
                 align-items: flex-start;
                 padding: 10px;
+                touch-action: auto;
             }
 
             #gameContainer {
@@ -908,7 +909,7 @@
             .store-item, [class*="weapon"], [class*="item"] {
                 min-height: 60px;
                 padding: 15px;
-                touch-action: manipulation;
+                touch-action: auto;
                 user-select: none;
             }
 
@@ -1177,6 +1178,7 @@
                 padding: 6px !important;
             }
         }
+
 
 
 
