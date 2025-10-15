@@ -230,7 +230,7 @@
         }
         
         #pauseOverlay {
-            position: absolute;
+            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
@@ -247,6 +247,7 @@
             max-height: 90vh;
             overflow-y: auto;
             box-shadow: 0 0 50px rgba(255,0,0,0.3);
+            z-index: 9999;
         }
 
         .pause-title {
@@ -805,47 +806,7 @@
             box-shadow: 0 0 20px rgba(255,0,0,0.5);
             border-color: #ff6666;
         }
-         #mobileScrollButtons {
-            position: absolute;
-            top: 50%;
-            right: 100px;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            pointer-events: all;
-            z-index: 1001;
-        }
 
-        .mobile-scroll-btn {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, rgba(0,100,0,0.8), rgba(0,150,0,0.6));
-            border: 2px solid #00ff00;
-            border-radius: 50%;
-            color: white;
-            font-size: 18px;
-            font-family: 'Russo One', sans-serif;
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(0,255,0,0.3);
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            touch-action: manipulation;
-            user-select: none;
-        }
-
-        .mobile-scroll-btn:active {
-            transform: scale(0.9);
-            box-shadow: 0 0 25px rgba(0,255,0,0.6);
-            background: linear-gradient(135deg, #00ff00, #00cc00);
-        }
-
-        .mobile-scroll-btn:hover {
-            box-shadow: 0 0 20px rgba(0,255,0,0.5);
-            border-color: #66ff66;
-        }
         #mobileScrollButtons {
             position: absolute;
             top: 50%;
@@ -887,6 +848,7 @@
             box-shadow: 0 0 20px rgba(0,255,0,0.5);
             border-color: #66ff66;
         }
+
         /* Mobile Responsive Styles */
         @media (max-width: 768px) {
             body {
@@ -933,8 +895,8 @@
             #mobileControls {
                 display: block !important;
             }
-         
-              /* Mobile Store Scrolling */
+
+            /* Mobile Store Scrolling */
             #store, .store, [class*="store"], [id*="store"] {
                 -webkit-overflow-scrolling: touch;
                 overflow-y: auto;
@@ -964,6 +926,7 @@
                 background: var(--main-color);
                 border-radius: 4px;
             }
+
             /* Mobile Start Menu */
             .start-menu-content {
                 width: 90vw;
@@ -988,28 +951,77 @@
 
             /* Mobile Pause Menu */
             #pauseOverlay {
-                width: 95vw;
-                height: 95vh;
-                top: 2.5vh;
-                left: 2.5vw;
-                padding: 15px;
-                font-size: 12px;
+                position: fixed !important;
+                width: 95vw !important;
+                height: 95vh !important;
+                max-width: none !important;
+                max-height: none !important;
+                top: 2.5vh !important;
+                left: 2.5vw !important;
+                transform: none !important;
+                padding: 10px !important;
+                font-size: 11px !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch;
+                z-index: 9999 !important;
             }
 
             .pause-title {
-                font-size: 36px;
+                font-size: 28px !important;
+                margin-bottom: 15px !important;
+            }
+
+            .how-to-play h3 {
+                font-size: 18px !important;
+                margin: 0 0 15px 0 !important;
+            }
+
+            .how-to-play h4 {
+                font-size: 14px !important;
+                margin: 10px 0 6px 0 !important;
+            }
+
+            .controls-section, .gameplay-section, .systems-section, .tips-section {
+                margin-bottom: 15px !important;
+                padding: 10px !important;
             }
 
             .control-grid, .system-grid {
-                grid-template-columns: 1fr;
-                gap: 8px;
+                grid-template-columns: 1fr !important;
+                gap: 6px !important;
+            }
+
+            .control-grid div, .system-grid div {
+                padding: 6px !important;
+                font-size: 10px !important;
+            }
+
+            .gameplay-section p {
+                font-size: 11px !important;
+                line-height: 1.3 !important;
+            }
+
+            .tips-section ul {
+                padding-left: 15px !important;
+            }
+
+            .tips-section li {
+                font-size: 10px !important;
+                margin-bottom: 3px !important;
+                line-height: 1.2 !important;
+            }
+
+            .pause-buttons {
+                margin-top: 15px !important;
+                padding-top: 15px !important;
             }
 
             .pause-buttons button, .home-button {
-                width: 100%;
-                margin: 5px 0;
-                padding: 12px;
-                font-size: 14px;
+                width: 100% !important;
+                margin: 4px 0 !important;
+                padding: 10px !important;
+                font-size: 12px !important;
+                min-width: auto !important;
             }
 
             /* Mobile Game Over */
@@ -1074,7 +1086,98 @@
             .game-title {
                 font-size: 28px !important;
             }
+
+            /* Extra small screens - pause menu adjustments */
+            #pauseOverlay {
+                width: 98vw !important;
+                height: 98vh !important;
+                top: 1vh !important;
+                left: 1vw !important;
+                padding: 8px !important;
+                font-size: 10px !important;
+                border-width: 2px !important;
+            }
+
+            .pause-title {
+                font-size: 24px !important;
+                margin-bottom: 10px !important;
+            }
+
+            .how-to-play h3 {
+                font-size: 16px !important;
+                margin: 0 0 10px 0 !important;
+            }
+
+            .how-to-play h4 {
+                font-size: 12px !important;
+                margin: 8px 0 4px 0 !important;
+            }
+
+            .controls-section, .gameplay-section, .systems-section, .tips-section {
+                margin-bottom: 10px !important;
+                padding: 8px !important;
+            }
+
+            .control-grid div, .system-grid div {
+                padding: 4px !important;
+                font-size: 9px !important;
+            }
+
+            .gameplay-section p {
+                font-size: 10px !important;
+            }
+
+            .tips-section li {
+                font-size: 9px !important;
+                margin-bottom: 2px !important;
+            }
+
+            .pause-buttons {
+                margin-top: 10px !important;
+                padding-top: 10px !important;
+            }
+
+            .pause-buttons button, .home-button {
+                padding: 8px !important;
+                font-size: 11px !important;
+                margin: 3px 0 !important;
+            }
         }
+
+        /* Extra responsive breakpoint for very small screens */
+        @media (max-width: 320px) {
+            #pauseOverlay {
+                padding: 5px !important;
+                font-size: 9px !important;
+            }
+
+            .pause-title {
+                font-size: 20px !important;
+            }
+
+            .how-to-play h3 {
+                font-size: 14px !important;
+            }
+
+            .how-to-play h4 {
+                font-size: 11px !important;
+            }
+
+            .control-grid div, .system-grid div {
+                font-size: 8px !important;
+                padding: 3px !important;
+            }
+
+            .gameplay-section p, .tips-section li {
+                font-size: 8px !important;
+            }
+
+            .pause-buttons button, .home-button {
+                font-size: 10px !important;
+                padding: 6px !important;
+            }
+        }
+
 
 
 
