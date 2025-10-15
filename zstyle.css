@@ -1,6 +1,6 @@
  @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Russo+One&display=swap');
         
-        body {
+         body {
             margin: 0;
             padding: 0;
             background: linear-gradient(135deg, #0f0f0f 0%, #1a0808 100%);
@@ -1225,6 +1225,7 @@
                 padding: 6px !important;
             }
         }
+
 
 
 
