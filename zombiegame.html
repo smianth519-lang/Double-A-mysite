@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="zstyle.css">
 </head>
 <body>
-   <div id="gameContainer">
+  <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="gameUI">
             <div>Health: <span id="health">100</span></div>
@@ -357,8 +357,101 @@
                         active: joystick.active
                     };
                 };
+
+                // Simulate keyboard input based on joystick movement
+                let currentKeys = { w: false, a: false, s: false, d: false };
                 
-                console.log('Mobile controls initialized successfully');
+                function updateMovementKeys() {
+                    if (!joystick.active) {
+                        // Release all keys when joystick is not active
+                        if (currentKeys.w || currentKeys.a || currentKeys.s || currentKeys.d) {
+                            releaseAllMovementKeys();
+                        }
+                        return;
+                    }
+
+                    const threshold = 0.3; // Dead zone threshold
+                    const newKeys = {
+                        w: joystick.normalizedY < -threshold, // Up
+                        s: joystick.normalizedY > threshold,  // Down
+                        a: joystick.normalizedX < -threshold, // Left
+                        d: joystick.normalizedX > threshold   // Right
+                    };
+
+                    // Press/release keys as needed
+                    for (let key in newKeys) {
+                        if (newKeys[key] && !currentKeys[key]) {
+                            // Press key
+                            simulateKeyEvent('keydown', key);
+                            currentKeys[key] = true;
+                        } else if (!newKeys[key] && currentKeys[key]) {
+                            // Release key
+                            simulateKeyEvent('keyup', key);
+                            currentKeys[key] = false;
+                        }
+                    }
+                }
+
+                function releaseAllMovementKeys() {
+                    for (let key in currentKeys) {
+                        if (currentKeys[key]) {
+                            simulateKeyEvent('keyup', key);
+                            currentKeys[key] = false;
+                        }
+                    }
+                }
+
+                function simulateKeyEvent(type, key) {
+                    const keyCode = { 'w': 87, 'a': 65, 's': 83, 'd': 68 }[key];
+                    const event = new KeyboardEvent(type, {
+                        key: key.toUpperCase(),
+                        code: `Key${key.toUpperCase()}`,
+                        keyCode: keyCode,
+                        which: keyCode,
+                        bubbles: true,
+                        cancelable: true
+                    });
+                    document.dispatchEvent(event);
+                }
+
+                // Update movement keys continuously
+                setInterval(updateMovementKeys, 16); // ~60 FPS updates
+
+                // Alternative: Direct movement injection for games that check keys object
+                window.mobileMovement = {
+                    up: false,
+                    down: false,
+                    left: false,
+                    right: false,
+                    updateFromJoystick: function() {
+                        const threshold = 0.3;
+                        this.up = joystick.active && joystick.normalizedY < -threshold;
+                        this.down = joystick.active && joystick.normalizedY > threshold;
+                        this.left = joystick.active && joystick.normalizedX < -threshold;
+                        this.right = joystick.active && joystick.normalizedX > threshold;
+                    }
+                };
+
+                // Update mobile movement state
+                setInterval(function() {
+                    window.mobileMovement.updateFromJoystick();
+                }, 16);
+
+                // Try to hook into common game key checking patterns
+                const originalAddEventListener = document.addEventListener;
+                document.addEventListener = function(type, listener, options) {
+                    if (type === 'keydown' || type === 'keyup') {
+                        // Wrap the listener to inject our mobile input
+                        const wrappedListener = function(event) {
+                            // Call original listener
+                            listener(event);
+                        };
+                        return originalAddEventListener.call(this, type, wrappedListener, options);
+                    }
+                    return originalAddEventListener.call(this, type, listener, options);
+                };
+                
+                console.log('Mobile controls with multiple input methods initialized successfully');
             } else {
                 // Hide mobile controls on desktop
                 document.getElementById('mobileControls').style.display = 'none';
@@ -367,4 +460,5 @@
     </script>
 </body>
 </html>
+
 
