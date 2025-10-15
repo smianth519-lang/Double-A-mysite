@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="zstyle.css">
 </head>
 <body>
-<div id="gameContainer">
+ <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="gameUI">
             <div>Health: <span id="health">100</span></div>
@@ -162,38 +162,40 @@
 
     <script src="zscript.js"></script>
     <script>
-        // Mobile Detection and Controls Initialization
+        // Simple mobile detection
         function isMobileDevice() {
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-                   ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) ||
-                   (window.innerWidth <= 768);
-            
-            console.log('Mobile detection:', isMobile, 'UserAgent:', navigator.userAgent);
-            console.log('Touch support:', 'ontouchstart' in window, 'MaxTouchPoints:', navigator.maxTouchPoints);
-            console.log('Screen width:', window.innerWidth);
-            
-            return isMobile;
+            return window.innerWidth <= 768 || 
+                   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                   ('ontouchstart' in window);
         }
 
-        // Wait for DOM to be fully loaded
+        // Main initialization
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, initializing mobile controls...');
-            
-            // Force mobile controls for testing (remove this line after testing)
-            // document.getElementById('mobileControls').style.display = 'block';
-            
-            // Initialize mobile controls if on mobile device
             const isMobile = isMobileDevice();
-            console.log('Is mobile device:', isMobile);
+            console.log('Mobile device:', isMobile, 'Width:', window.innerWidth);
             
             if (isMobile) {
-                console.log('Showing mobile controls...');
                 const mobileControls = document.getElementById('mobileControls');
                 if (mobileControls) {
-                    mobileControls.style.display = 'block';
-                    console.log('Mobile controls element found and shown');
-                } else {
-                    console.error('Mobile controls element not found!');
+                    console.log('Mobile controls setup for mobile device');
+                    
+                    // Initially hide mobile controls completely
+                    mobileControls.style.display = 'none';
+                    
+                    // Function to manage mobile controls based on game state
+                    function manageMobileControlsVisibility() {
+                        const startMenu = document.getElementById('startMenu');
+                        
+                        // Only show mobile controls when game is actually running (no start menu)
+                        if (startMenu && (startMenu.style.display === 'none' || !startMenu.offsetParent)) {
+                            mobileControls.style.display = 'block';
+                        } else {
+                            mobileControls.style.display = 'none';
+                        }
+                    }
+                    
+                    // Check every 200ms
+                    setInterval(manageMobileControlsVisibility, 200);
                 }
                 
                 // Virtual Joystick Touch Handler
@@ -933,24 +935,6 @@
                 }, { passive: false });
 
                 console.log('Mobile controls with touch item selection initialized successfully');
-            } else {
-                // Hide mobile controls on desktop
-                console.log('Desktop detected, hiding mobile controls');
-                const mobileControls = document.getElementById('mobileControls');
-                if (mobileControls) {
-                    mobileControls.style.display = 'none';
-                }
-            }
-            
-            // Add test button for debugging mobile functionality
-            if (window.innerWidth <= 768) {
-                console.log('Small screen detected, ensuring mobile features work');
-                // Force enable mobile controls for small screens
-                const mobileControls = document.getElementById('mobileControls');
-                if (mobileControls) {
-                    mobileControls.style.display = 'block';
-                    console.log('Force-enabled mobile controls for small screen');
-                }
             }
         });
 
@@ -988,10 +972,28 @@
             
             // Initial check
             setTimeout(checkPauseState, 500);
+            
+            // Simple mobile button enhancement
+            if (isMobile) {
+                console.log('Setting up simple mobile button support...');
+                
+                // Make sure all buttons work on mobile
+                setTimeout(function() {
+                    const allButtons = document.querySelectorAll('button');
+                    allButtons.forEach(button => {
+                        button.style.touchAction = 'manipulation';
+                        button.style.webkitTapHighlightColor = 'rgba(0,0,0,0.1)';
+                    });
+                    console.log('Enhanced', allButtons.length, 'buttons for mobile');
+                }, 500);
+            }
         }
+
+
     </script>
 </body>
 </html>
+
 
 
 
