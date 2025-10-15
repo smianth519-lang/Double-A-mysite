@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="zstyle.css">
 </head>
 <body>
-    <div id="gameContainer">
+   <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="gameUI">
             <div>Health: <span id="health">100</span></div>
@@ -26,6 +26,22 @@
         <button id="pauseButton" onclick="togglePause()">⏸</button>
         <button id="companionButton" onclick="buyCompanion()">+ Add Ally ($100)</button>
         <button id="fullscreenButton" onclick="toggleFullscreen()">⛶</button>
+        
+        <!-- Mobile Touch Controls -->
+        <div id="mobileControls" style="display: none;">
+            <div id="virtualJoystick">
+                <div id="joystickBase">
+                    <div id="joystickKnob"></div>
+                </div>
+            </div>
+            <div id="mobileActionButtons">
+                <button class="mobile-btn" id="mobileShootBtn">🔫</button>
+                <button class="mobile-btn" id="mobileAutoBtn">🎯</button>
+                <button class="mobile-btn" id="mobileStoreBtn">🏪</button>
+                <button class="mobile-btn" id="mobileWallBtn">🧱</button>
+                <button class="mobile-btn" id="mobilePauseBtn">⏸️</button>
+            </div>
+        </div>
         
         <div id="startMenu">
             <div class="start-menu-content">
@@ -115,7 +131,7 @@
                 <div class="pause-buttons">
                     <button onclick="togglePause()">Resume Game</button>
                     <button onclick="quitGame()" class="quit-button">Quit to Menu</button>
-                     <a href="index.html" class="home-button">← Back to Website</a>
+                    <a href="index.html" class="home-button">← Back to Website</a>
                 </div>
             </div>
         </div>
@@ -145,6 +161,107 @@
     </div>
 
     <script src="zscript.js"></script>
+    <script>
+        // Mobile Detection and Controls Initialization
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                   ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        }
+
+        // Initialize mobile controls if on mobile device
+        if (isMobileDevice()) {
+            document.getElementById('mobileControls').style.display = 'block';
+            
+            // Virtual Joystick Touch Handler
+            let joystick = {
+                active: false,
+                startX: 0,
+                startY: 0,
+                currentX: 0,
+                currentY: 0,
+                deltaX: 0,
+                deltaY: 0
+            };
+
+            const joystickBase = document.getElementById('joystickBase');
+            const joystickKnob = document.getElementById('joystickKnob');
+            const maxDistance = 35;
+
+            joystickBase.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                joystick.active = true;
+                const rect = joystickBase.getBoundingClientRect();
+                joystick.startX = rect.left + rect.width / 2;
+                joystick.startY = rect.top + rect.height / 2;
+            });
+
+            document.addEventListener('touchmove', function(e) {
+                if (!joystick.active) return;
+                e.preventDefault();
+                
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - joystick.startX;
+                const deltaY = touch.clientY - joystick.startY;
+                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                
+                if (distance <= maxDistance) {
+                    joystick.deltaX = deltaX;
+                    joystick.deltaY = deltaY;
+                } else {
+                    const angle = Math.atan2(deltaY, deltaX);
+                    joystick.deltaX = Math.cos(angle) * maxDistance;
+                    joystick.deltaY = Math.sin(angle) * maxDistance;
+                }
+                
+                joystickKnob.style.transform = `translate(-50%, -50%) translate(${joystick.deltaX}px, ${joystick.deltaY}px)`;
+            });
+
+            document.addEventListener('touchend', function(e) {
+                if (joystick.active) {
+                    joystick.active = false;
+                    joystick.deltaX = 0;
+                    joystick.deltaY = 0;
+                    joystickKnob.style.transform = 'translate(-50%, -50%)';
+                }
+            });
+
+            // Mobile Button Event Listeners
+            document.getElementById('mobileShootBtn').addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                // Trigger shooting - this would need to be connected to your game's shooting function
+                if (typeof window.mobileShoot === 'function') window.mobileShoot();
+            });
+
+            document.getElementById('mobileAutoBtn').addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                // Toggle auto-targeting
+                if (typeof window.toggleAutoTarget === 'function') window.toggleAutoTarget();
+            });
+
+            document.getElementById('mobileStoreBtn').addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                // Open store
+                if (typeof window.toggleStore === 'function') window.toggleStore();
+            });
+
+            document.getElementById('mobileWallBtn').addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                // Rebuild walls
+                if (typeof window.rebuildWalls === 'function') window.rebuildWalls();
+            });
+
+            document.getElementById('mobilePauseBtn').addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                // Pause game
+                if (typeof window.togglePause === 'function') window.togglePause();
+            });
+
+            // Export joystick state for game to use
+            window.mobileJoystick = joystick;
+        }
+    </script>
 </body>
+</html>
 
 </html>
+
