@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="zstyle.css">
 </head>
 <body>
- <div id="gameContainer">
+<div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="gameUI">
             <div>Health: <span id="health">100</span></div>
@@ -194,6 +194,7 @@
 
                 // Joystick touch start
                 joystickBase.addEventListener('touchstart', function(e) {
+                    // Only prevent default on the joystick itself, not globally
                     e.preventDefault();
                     e.stopPropagation();
                     
@@ -226,6 +227,7 @@
                     
                     if (!ourTouch) return;
                     
+                    // Only prevent default if this is our joystick touch
                     e.preventDefault();
                     
                     const deltaX = ourTouch.clientX - joystick.startX;
@@ -281,6 +283,7 @@
                     const button = document.getElementById(buttonId);
                     if (button) {
                         button.addEventListener('touchstart', function(e) {
+                            // Only prevent default on our mobile control buttons, not globally
                             e.preventDefault();
                             e.stopPropagation();
                             this.style.transform = 'scale(0.9)';
@@ -289,6 +292,7 @@
                         
                         button.addEventListener('touchend', function(e) {
                             e.preventDefault();
+                            e.stopPropagation();
                             this.style.transform = 'scale(1)';
                         }, { passive: false });
                     }
@@ -479,7 +483,7 @@
                         // Add touch scrolling to store
                         storeElement.addEventListener('touchstart', function(e) {
                             if (storeScrolling.isScrolling) return;
-                            e.stopPropagation(); // Prevent interference with other touch handlers
+                            // Don't stop propagation to allow normal interactions
                             
                             const touch = e.touches[0];
                             storeScrolling.isScrolling = true;
@@ -502,11 +506,13 @@
                             if (!ourTouch) return;
                             
                             const deltaY = ourTouch.clientY - storeScrolling.currentY;
-                            storeScrolling.currentY = ourTouch.clientY;
                             
-                            // Scroll the store content
-                            this.scrollTop -= deltaY;
-                            e.stopPropagation();
+                            // Only scroll if movement is significant
+                            if (Math.abs(deltaY) > 2) {
+                                storeScrolling.currentY = ourTouch.clientY;
+                                // Scroll the store content
+                                this.scrollTop -= deltaY;
+                            }
                         }, { passive: true });
 
                         storeElement.addEventListener('touchend', function(e) {
@@ -566,6 +572,9 @@
                         if (Math.abs(deltaY) > 10) { // Minimum movement threshold
                             canvasScroll.isScrolling = true;
                             
+                            // Only prevent default when actually scrolling in store
+                            e.preventDefault();
+                            
                             // Simulate wheel events for canvas-based stores
                             const wheelEvent = new WheelEvent('wheel', {
                                 deltaY: -deltaY * 2, // Amplify and invert
@@ -576,7 +585,7 @@
                             
                             canvasScroll.startY = ourTouch.clientY; // Reset for continuous scrolling
                         }
-                    }, { passive: true });
+                    }, { passive: false });
 
                     canvas.addEventListener('touchend', function(e) {
                         canvasScroll.isScrolling = false;
@@ -647,6 +656,7 @@
     </script>
 </body>
 </html>
+
 
 
 
