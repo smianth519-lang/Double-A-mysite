@@ -480,7 +480,7 @@
                     }
                     
                     if (storeElement) {
-                        // Add touch scrolling to store
+                        // Add touch scrolling and item selection to store
                         storeElement.addEventListener('touchstart', function(e) {
                             if (storeScrolling.isScrolling) return;
                             // Don't stop propagation to allow normal interactions
@@ -490,6 +490,8 @@
                             storeScrolling.touchId = touch.identifier;
                             storeScrolling.startY = touch.clientY;
                             storeScrolling.currentY = touch.clientY;
+                            storeScrolling.touchStartTime = Date.now();
+                            storeScrolling.moved = false;
                         }, { passive: true });
 
                         storeElement.addEventListener('touchmove', function(e) {
@@ -507,6 +509,11 @@
                             
                             const deltaY = ourTouch.clientY - storeScrolling.currentY;
                             
+                            // Track if user has moved significantly (scrolling vs tapping)
+                            if (Math.abs(deltaY) > 5) {
+                                storeScrolling.moved = true;
+                            }
+                            
                             // Only scroll if movement is significant
                             if (Math.abs(deltaY) > 2) {
                                 storeScrolling.currentY = ourTouch.clientY;
@@ -516,8 +523,38 @@
                         }, { passive: true });
 
                         storeElement.addEventListener('touchend', function(e) {
+                            const touchEndTime = Date.now();
+                            const touchDuration = touchEndTime - (storeScrolling.touchStartTime || 0);
+                            
+                            // If it was a quick tap without much movement, treat as item selection
+                            if (!storeScrolling.moved && touchDuration < 300) {
+                                const touch = e.changedTouches[0];
+                                const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                                
+                                // Look for clickable store items (buttons, divs with click handlers, etc.)
+                                let clickableItem = target;
+                                let attempts = 0;
+                                while (clickableItem && attempts < 5) {
+                                    if (clickableItem.onclick || 
+                                        clickableItem.getAttribute('onclick') ||
+                                        clickableItem.classList.contains('item') ||
+                                        clickableItem.classList.contains('weapon') ||
+                                        clickableItem.classList.contains('store-item') ||
+                                        clickableItem.tagName === 'BUTTON') {
+                                        
+                                        // Simulate click on the store item
+                                        clickableItem.click();
+                                        console.log('Store item clicked:', clickableItem);
+                                        break;
+                                    }
+                                    clickableItem = clickableItem.parentElement;
+                                    attempts++;
+                                }
+                            }
+                            
                             storeScrolling.isScrolling = false;
                             storeScrolling.touchId = null;
+                            storeScrolling.moved = false;
                         }, { passive: true });
 
                         console.log('Store touch scrolling initialized on:', storeElement);
@@ -531,24 +568,27 @@
                 // Initialize store scrolling
                 initializeStoreScrolling();
 
-                // Add canvas touch scrolling for games that render store on canvas
+                // Add canvas touch scrolling and item selection for games that render store on canvas
                 const canvas = document.getElementById('gameCanvas');
                 if (canvas) {
                     let canvasScroll = {
                         startY: 0,
+                        startX: 0,
                         isScrolling: false,
                         touchId: null,
-                        inStoreArea: false
+                        inStoreArea: false,
+                        touchStartTime: 0
                     };
 
                     canvas.addEventListener('touchstart', function(e) {
                         const touch = e.touches[0];
                         canvasScroll.startY = touch.clientY;
+                        canvasScroll.startX = touch.clientX;
                         canvasScroll.touchId = touch.identifier;
                         canvasScroll.isScrolling = false;
+                        canvasScroll.touchStartTime = Date.now();
                         
                         // Assume store might be open if store button was pressed recently
-                        // You might need to check game state here
                         setTimeout(() => {
                             canvasScroll.inStoreArea = true; // Assume we might be in store
                         }, 100);
@@ -588,6 +628,47 @@
                     }, { passive: false });
 
                     canvas.addEventListener('touchend', function(e) {
+                        const touchEndTime = Date.now();
+                        const touchDuration = touchEndTime - canvasScroll.touchStartTime;
+                        
+                        // If touch was short (tap) and didn't scroll much, treat as item selection
+                        if (!canvasScroll.isScrolling && touchDuration < 300 && canvasScroll.inStoreArea) {
+                            const touch = e.changedTouches[0];
+                            const rect = canvas.getBoundingClientRect();
+                            const canvasX = touch.clientX - rect.left;
+                            const canvasY = touch.clientY - rect.top;
+                            
+                            // Simulate a click event at the touch position for store item selection
+                            const clickEvent = new MouseEvent('click', {
+                                clientX: touch.clientX,
+                                clientY: touch.clientY,
+                                bubbles: true,
+                                cancelable: true
+                            });
+                            canvas.dispatchEvent(clickEvent);
+                            
+                            // Also try simulating a mouse down and up sequence
+                            const mouseDownEvent = new MouseEvent('mousedown', {
+                                clientX: touch.clientX,
+                                clientY: touch.clientY,
+                                bubbles: true,
+                                cancelable: true
+                            });
+                            canvas.dispatchEvent(mouseDownEvent);
+                            
+                            setTimeout(() => {
+                                const mouseUpEvent = new MouseEvent('mouseup', {
+                                    clientX: touch.clientX,
+                                    clientY: touch.clientY,
+                                    bubbles: true,
+                                    cancelable: true
+                                });
+                                canvas.dispatchEvent(mouseUpEvent);
+                            }, 10);
+                            
+                            console.log('Store item touch detected at:', canvasX, canvasY);
+                        }
+                        
                         canvasScroll.isScrolling = false;
                         canvasScroll.inStoreArea = false;
                         canvasScroll.touchId = null;
@@ -647,7 +728,54 @@
                     }
                 }, { passive: true });
 
-                console.log('Mobile controls with multiple input methods initialized successfully');
+                // Add global touch-to-click handler for store items
+                document.addEventListener('touchend', function(e) {
+                    // Only handle quick taps (not scrolls)
+                    const touch = e.changedTouches[0];
+                    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                    
+                    // Check if the touch was on a store-related element
+                    if (target && (
+                        target.closest('#store') || 
+                        target.closest('.store') || 
+                        target.closest('[class*="store"]') ||
+                        target.closest('[id*="shop"]') ||
+                        target.closest('.weapon-list') ||
+                        target.closest('.item-list')
+                    )) {
+                        // Look for clickable elements
+                        let clickable = target;
+                        let depth = 0;
+                        while (clickable && depth < 3) {
+                            if (clickable.onclick || 
+                                clickable.getAttribute('onclick') ||
+                                clickable.tagName === 'BUTTON' ||
+                                clickable.classList.contains('clickable') ||
+                                clickable.hasAttribute('data-item') ||
+                                clickable.hasAttribute('data-weapon')) {
+                                
+                                // Prevent default touch behavior and simulate click
+                                e.preventDefault();
+                                
+                                // Create and dispatch click event
+                                const clickEvent = new MouseEvent('click', {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    clientX: touch.clientX,
+                                    clientY: touch.clientY
+                                });
+                                clickable.dispatchEvent(clickEvent);
+                                
+                                console.log('Mobile store item clicked:', clickable);
+                                break;
+                            }
+                            clickable = clickable.parentElement;
+                            depth++;
+                        }
+                    }
+                }, { passive: false });
+
+                console.log('Mobile controls with touch item selection initialized successfully');
             } else {
                 // Hide mobile controls on desktop
                 document.getElementById('mobileControls').style.display = 'none';
