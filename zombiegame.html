@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="zstyle.css">
 </head>
 <body>
- <div id="gameContainer">
+<div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="gameUI">
             <div>Health: <span id="health">100</span></div>
@@ -227,8 +227,17 @@
                     
                     if (!ourTouch) return;
                     
-                    // Only prevent default if this is our joystick touch
-                    e.preventDefault();
+                    // Only prevent default for joystick movement - check if touch is near joystick area
+                    const joystickRect = joystickBase.getBoundingClientRect();
+                    const touchDistance = Math.sqrt(
+                        Math.pow(ourTouch.clientX - (joystickRect.left + joystickRect.width/2), 2) + 
+                        Math.pow(ourTouch.clientY - (joystickRect.top + joystickRect.height/2), 2)
+                    );
+                    
+                    // Only prevent default if touch is within reasonable distance of joystick
+                    if (touchDistance < 150) {
+                        e.preventDefault();
+                    }
                     
                     const deltaX = ourTouch.clientX - joystick.startX;
                     const deltaY = ourTouch.clientY - joystick.startY;
@@ -619,16 +628,18 @@
                         if (Math.abs(deltaY) > 10) { // Minimum movement threshold
                             canvasScroll.isScrolling = true;
                             
-                            // Only prevent default when actually scrolling in store
-                            e.preventDefault();
-                            
-                            // Simulate wheel events for canvas-based stores
-                            const wheelEvent = new WheelEvent('wheel', {
-                                deltaY: -deltaY * 2, // Amplify and invert
-                                bubbles: true,
-                                cancelable: true
-                            });
-                            canvas.dispatchEvent(wheelEvent);
+                            // Only prevent default when in store and actually scrolling
+                            if (window.showStore) {
+                                e.preventDefault();
+                                
+                                // Simulate wheel events for canvas-based stores
+                                const wheelEvent = new WheelEvent('wheel', {
+                                    deltaY: -deltaY * 2, // Amplify and invert
+                                    bubbles: true,
+                                    cancelable: true
+                                });
+                                canvas.dispatchEvent(wheelEvent);
+                            }
                             
                             canvasScroll.startY = ourTouch.clientY; // Reset for continuous scrolling
                         }
@@ -639,8 +650,8 @@
                         const touchDuration = touchEndTime - canvasScroll.touchStartTime;
                         
                         // If touch was short (tap) and didn't scroll much, treat as item selection
-                        if (!canvasScroll.isScrolling && touchDuration < 500 && canvasScroll.inStoreArea) {
-                            e.preventDefault(); // Prevent default touch behavior
+                        if (!canvasScroll.isScrolling && touchDuration < 500 && canvasScroll.inStoreArea && window.showStore) {
+                            e.preventDefault(); // Only prevent default when actually in store
                             
                             const touch = e.changedTouches[0];
                             const rect = canvas.getBoundingClientRect();
@@ -868,8 +879,10 @@
                                 clickable.hasAttribute('data-item') ||
                                 clickable.hasAttribute('data-weapon')) {
                                 
-                                // Prevent default touch behavior and simulate click
-                                e.preventDefault();
+                                // Only prevent default for actual store interactions
+                                if (clickable.closest('[class*="store"]') || clickable.closest('[id*="store"]')) {
+                                    e.preventDefault();
+                                }
                                 
                                 // Create and dispatch click event
                                 const clickEvent = new MouseEvent('click', {
@@ -898,6 +911,7 @@
     </script>
 </body>
 </html>
+
 
 
 
