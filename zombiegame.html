@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="zstyle.css">
 </head>
 <body>
-<div id="gameContainer">
+ <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="gameUI">
             <div>Health: <span id="health">100</span></div>
@@ -908,9 +908,46 @@
                 document.getElementById('mobileControls').style.display = 'none';
             }
         });
+
+        // Mobile scrolling management - monitor pause state
+        if (isMobileDevice()) {
+            // Function to check if pause overlay is visible
+            function checkPauseState() {
+                const pauseOverlay = document.getElementById('pauseOverlay');
+                const startMenu = document.getElementById('startMenu');
+                const gameOver = document.getElementById('gameOver');
+                const highScoresModal = document.getElementById('highScoresModal');
+                
+                const isPaused = (pauseOverlay && pauseOverlay.style.display !== 'none') ||
+                               (startMenu && startMenu.style.display !== 'none') ||
+                               (gameOver && gameOver.style.display !== 'none') ||
+                               (highScoresModal && highScoresModal.style.display !== 'none');
+                
+                if (isPaused) {
+                    document.body.classList.add('pause-active');
+                } else {
+                    document.body.classList.remove('pause-active');
+                }
+            }
+            
+            // Check pause state periodically
+            setInterval(checkPauseState, 100);
+            
+            // Also check on DOM changes
+            const observer = new MutationObserver(checkPauseState);
+            observer.observe(document.body, {
+                attributes: true,
+                subtree: true,
+                attributeFilter: ['style', 'class']
+            });
+            
+            // Initial check
+            setTimeout(checkPauseState, 500);
+        }
     </script>
 </body>
 </html>
+
 
 
 
