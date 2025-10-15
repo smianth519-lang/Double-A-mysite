@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="zstyle.css">
 </head>
 <body>
-<div id="gameContainer">
+ <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="gameUI">
             <div>Health: <span id="health">100</span></div>
@@ -588,10 +588,17 @@
                         canvasScroll.isScrolling = false;
                         canvasScroll.touchStartTime = Date.now();
                         
-                        // Assume store might be open if store button was pressed recently
-                        setTimeout(() => {
-                            canvasScroll.inStoreArea = true; // Assume we might be in store
-                        }, 100);
+                        // Check if store is currently open
+                        canvasScroll.inStoreArea = window.showStore || false;
+                        
+                        // If we can't access showStore, assume we might be in store for safety
+                        if (canvasScroll.inStoreArea === undefined) {
+                            setTimeout(() => {
+                                canvasScroll.inStoreArea = true;
+                            }, 50);
+                        }
+                        
+                        console.log('Touch start - store open:', canvasScroll.inStoreArea);
                     }, { passive: true });
 
                     canvas.addEventListener('touchmove', function(e) {
@@ -632,47 +639,124 @@
                         const touchDuration = touchEndTime - canvasScroll.touchStartTime;
                         
                         // If touch was short (tap) and didn't scroll much, treat as item selection
-                        if (!canvasScroll.isScrolling && touchDuration < 300 && canvasScroll.inStoreArea) {
+                        if (!canvasScroll.isScrolling && touchDuration < 500 && canvasScroll.inStoreArea) {
+                            e.preventDefault(); // Prevent default touch behavior
+                            
                             const touch = e.changedTouches[0];
                             const rect = canvas.getBoundingClientRect();
-                            const canvasX = touch.clientX - rect.left;
-                            const canvasY = touch.clientY - rect.top;
                             
-                            // Simulate a click event at the touch position for store item selection
-                            const clickEvent = new MouseEvent('click', {
-                                clientX: touch.clientX,
-                                clientY: touch.clientY,
-                                bubbles: true,
-                                cancelable: true
-                            });
-                            canvas.dispatchEvent(clickEvent);
+                            // Calculate precise canvas coordinates
+                            const scaleX = canvas.width / rect.width;
+                            const scaleY = canvas.height / rect.height;
+                            const canvasX = (touch.clientX - rect.left) * scaleX;
+                            const canvasY = (touch.clientY - rect.top) * scaleY;
                             
-                            // Also try simulating a mouse down and up sequence
-                            const mouseDownEvent = new MouseEvent('mousedown', {
-                                clientX: touch.clientX,
-                                clientY: touch.clientY,
-                                bubbles: true,
-                                cancelable: true
-                            });
-                            canvas.dispatchEvent(mouseDownEvent);
+                            console.log('Store touch at canvas coords:', canvasX, canvasY);
+                            console.log('Store visible:', window.showStore);
                             
-                            setTimeout(() => {
-                                const mouseUpEvent = new MouseEvent('mouseup', {
+                            // Check if we're in store mode and call the purchase logic directly
+                            if (window.showStore && window.weapons && window.playerCurrency !== undefined) {
+                                // Store dimensions (matching the game's store layout)
+                                const storeWidth = 900;
+                                const storeHeight = Math.min(canvas.height - 40, 800);
+                                const storeX = (canvas.width - storeWidth) / 2;
+                                const storeY = (canvas.height - storeHeight) / 2;
+                                
+                                // Check if touch is within store area
+                                if (canvasX >= storeX && canvasX <= storeX + storeWidth &&
+                                    canvasY >= storeY && canvasY <= storeY + storeHeight) {
+                                    
+                                    // Calculate weapon list area
+                                    const weaponStartY = storeY + 200; // Adjusted for supplies section
+                                    const weaponHeight = 50;
+                                    
+                                    // Get available weapons
+                                    const availableWeapons = Object.keys(window.weapons || {});
+                                    
+                                    // Group weapons by category
+                                    const weaponCategories = {};
+                                    availableWeapons.forEach(key => {
+                                        const weapon = window.weapons[key];
+                                        if (weapon && weapon.category) {
+                                            if (!weaponCategories[weapon.category]) {
+                                                weaponCategories[weapon.category] = [];
+                                            }
+                                            weaponCategories[weapon.category].push({key, ...weapon});
+                                        }
+                                    });
+                                    
+                                    let currentY = weaponStartY - (window.storeScrollY || 0);
+                                    let itemFound = false;
+                                    
+                                    // Check each weapon category and item
+                                    Object.keys(weaponCategories).forEach(category => {
+                                        currentY += 20; // Category header space
+                                        
+                                        weaponCategories[category].forEach(weapon => {
+                                            const weaponY = currentY;
+                                            
+                                            // Check if touch is on this weapon
+                                            if (!itemFound && canvasX >= storeX + 20 && canvasX <= storeX + storeWidth - 20 &&
+                                                canvasY >= weaponY - 5 && canvasY <= weaponY + weaponHeight - 5) {
+                                                
+                                                console.log('Weapon touched:', weapon.name, weapon.key);
+                                                
+                                                // Try to purchase weapon
+                                                if (window.purchaseWeapon && typeof window.purchaseWeapon === 'function') {
+                                                    window.purchaseWeapon(weapon.key);
+                                                    console.log('Purchase function called for:', weapon.key);
+                                                } else {
+                                                    // Fallback: simulate exact mousedown event
+                                                    const mouseDownEvent = new MouseEvent('mousedown', {
+                                                        clientX: touch.clientX,
+                                                        clientY: touch.clientY,
+                                                        bubbles: true,
+                                                        cancelable: true,
+                                                        button: 0
+                                                    });
+                                                    canvas.dispatchEvent(mouseDownEvent);
+                                                }
+                                                
+                                                itemFound = true;
+                                                return;
+                                            }
+                                            
+                                            currentY += weaponHeight + 3;
+                                        });
+                                        
+                                        currentY += 5;
+                                    });
+                                    
+                                    if (!itemFound) {
+                                        console.log('No weapon found at touch position');
+                                        // Still try simulating a mouse event as fallback
+                                        const mouseDownEvent = new MouseEvent('mousedown', {
+                                            clientX: touch.clientX,
+                                            clientY: touch.clientY,
+                                            bubbles: true,
+                                            cancelable: true,
+                                            button: 0
+                                        });
+                                        canvas.dispatchEvent(mouseDownEvent);
+                                    }
+                                }
+                            } else {
+                                // Fallback: simulate mouse events
+                                const mouseDownEvent = new MouseEvent('mousedown', {
                                     clientX: touch.clientX,
                                     clientY: touch.clientY,
                                     bubbles: true,
-                                    cancelable: true
+                                    cancelable: true,
+                                    button: 0
                                 });
-                                canvas.dispatchEvent(mouseUpEvent);
-                            }, 10);
-                            
-                            console.log('Store item touch detected at:', canvasX, canvasY);
+                                canvas.dispatchEvent(mouseDownEvent);
+                            }
                         }
                         
                         canvasScroll.isScrolling = false;
                         canvasScroll.inStoreArea = false;
                         canvasScroll.touchId = null;
-                    }, { passive: true });
+                    }, { passive: false });
 
                     console.log('Canvas touch scrolling initialized');
                 }
@@ -728,13 +812,43 @@
                     }
                 }, { passive: true });
 
+                // Add debugging for store state
+                setInterval(() => {
+                    if (window.showStore !== window.lastStoreState) {
+                        console.log('Store state changed:', window.showStore);
+                        window.lastStoreState = window.showStore;
+                    }
+                }, 1000);
+                
+                // Make sure game script variables are accessible globally  
+                window.addEventListener('load', () => {
+                    // Wait a bit for the game script to initialize
+                    setTimeout(() => {
+                        console.log('Game variables check:');
+                        console.log('showStore:', typeof window.showStore);
+                        console.log('weapons:', typeof window.weapons);
+                        console.log('purchaseWeapon:', typeof window.purchaseWeapon);
+                        console.log('playerCurrency:', typeof window.playerCurrency);
+                    }, 2000);
+                });
+                
                 // Add global touch-to-click handler for store items
                 document.addEventListener('touchend', function(e) {
-                    // Only handle quick taps (not scrolls)
+                    // Only handle if we're potentially in a canvas store
                     const touch = e.changedTouches[0];
                     const target = document.elementFromPoint(touch.clientX, touch.clientY);
                     
-                    // Check if the touch was on a store-related element
+                    // Check if touching the canvas (which contains the store)
+                    if (target && target.tagName === 'CANVAS' && target.id === 'gameCanvas') {
+                        console.log('Canvas touched, store open:', window.showStore);
+                        
+                        // If store is open, the canvas touch handler will deal with it
+                        if (window.showStore) {
+                            return; // Let canvas handler deal with store touches
+                        }
+                    }
+                    
+                    // Check if the touch was on a regular HTML store-related element
                     if (target && (
                         target.closest('#store') || 
                         target.closest('.store') || 
@@ -766,7 +880,7 @@
                                 });
                                 clickable.dispatchEvent(clickEvent);
                                 
-                                console.log('Mobile store item clicked:', clickable);
+                                console.log('Mobile HTML store item clicked:', clickable);
                                 break;
                             }
                             clickable = clickable.parentElement;
@@ -784,6 +898,7 @@
     </script>
 </body>
 </html>
+
 
 
 
