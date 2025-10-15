@@ -173,70 +173,42 @@
             return mobile;
         }
         
-        // Also add direct button fixes immediately
-        window.addEventListener('load', function() {
-            alert('Page loaded, setting up buttons...');
+        // Simple immediate button fix
+        setTimeout(function() {
+            alert('Setting up simple touch handlers...');
             
-            // Wait longer for game script to fully load
-            setTimeout(function() {
-                const buttons = document.querySelectorAll('.difficulty-button');
-                alert('Found ' + buttons.length + ' difficulty buttons');
+            // Try to add touch events right away
+            const easyBtn = document.getElementById('easyButton');
+            const normalBtn = document.getElementById('normalButton');
+            const hardcoreBtn = document.getElementById('hardcoreButton');
+            
+            if (easyBtn && normalBtn && hardcoreBtn) {
+                alert('All 3 buttons found, adding touch events');
                 
-                if (buttons.length > 0) {
-                    buttons.forEach((button, index) => {
-                        // Add multiple event types for better compatibility
-                        ['touchend', 'click', 'touchstart'].forEach(eventType => {
-                            button.addEventListener(eventType, function(e) {
-                                if (eventType === 'touchend' || eventType === 'click') {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    alert('Button ' + index + ' ' + eventType + '!');
-                                    
-                                    // Try to start game based on button
-                                    if (button.textContent.includes('EASY')) {
-                                        alert('Trying to start easy game...');
-                                        // Try multiple ways to start the game
-                                        if (typeof startNewGame === 'function') {
-                                            startNewGame('easy');
-                                        } else if (typeof window.startNewGame === 'function') {
-                                            window.startNewGame('easy');
-                                        } else {
-                                            // Try clicking the button normally
-                                            button.click();
-                                            alert('Clicked button normally');
-                                        }
-                                    } else if (button.textContent.includes('NORMAL')) {
-                                        alert('Trying to start normal game...');
-                                        if (typeof startNewGame === 'function') {
-                                            startNewGame('normal');
-                                        } else if (typeof window.startNewGame === 'function') {
-                                            window.startNewGame('normal');
-                                        } else {
-                                            button.click();
-                                            alert('Clicked button normally');
-                                        }
-                                    } else if (button.textContent.includes('HARDCORE')) {
-                                        alert('Trying to start hardcore game...');
-                                        if (typeof startNewGame === 'function') {
-                                            startNewGame('hardcore');
-                                        } else if (typeof window.startNewGame === 'function') {
-                                            window.startNewGame('hardcore');
-                                        } else {
-                                            button.click();
-                                            alert('Clicked button normally');
-                                        }
-                                    }
-                                }
-                            }, { passive: false });
-                        });
-                    });
-                    
-                    alert('Touch handlers added to all ' + buttons.length + ' buttons');
-                } else {
-                    alert('No buttons found to add handlers to!');
-                }
-            }, 3000); // Wait 3 seconds instead of 2
-        });
+                // Add simple touch events
+                easyBtn.ontouchend = function(e) {
+                    e.preventDefault();
+                    alert('EASY button touched - hiding start menu');
+                    document.getElementById('startMenu').style.display = 'none';
+                };
+                
+                normalBtn.ontouchend = function(e) {
+                    e.preventDefault();
+                    alert('NORMAL button touched - hiding start menu');
+                    document.getElementById('startMenu').style.display = 'none';
+                };
+                
+                hardcoreBtn.ontouchend = function(e) {
+                    e.preventDefault();
+                    alert('HARDCORE button touched - hiding start menu');
+                    document.getElementById('startMenu').style.display = 'none';
+                };
+                
+                alert('Touch events added successfully!');
+            } else {
+                alert('Buttons not found: Easy=' + !!easyBtn + ' Normal=' + !!normalBtn + ' Hardcore=' + !!hardcoreBtn);
+            }
+        }, 1000);
 
         // Main initialization
         document.addEventListener('DOMContentLoaded', function() {
@@ -1134,6 +1106,7 @@
     </script>
 </body>
 </html>
+
 
 
 
