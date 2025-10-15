@@ -852,7 +852,37 @@
             #mobileControls {
                 display: block !important;
             }
+         
+              /* Mobile Store Scrolling */
+            #store, .store, [class*="store"], [id*="store"] {
+                -webkit-overflow-scrolling: touch;
+                overflow-y: auto;
+                max-height: 70vh;
+                touch-action: pan-y;
+            }
 
+            /* Store items should be touch-friendly on mobile */
+            .store-item, [class*="weapon"], [class*="item"] {
+                min-height: 60px;
+                padding: 15px;
+                touch-action: manipulation;
+                user-select: none;
+            }
+
+            /* Scrollbar styling for mobile store */
+            #store::-webkit-scrollbar, .store::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            #store::-webkit-scrollbar-track, .store::-webkit-scrollbar-track {
+                background: rgba(255,255,255,0.1);
+                border-radius: 4px;
+            }
+
+            #store::-webkit-scrollbar-thumb, .store::-webkit-scrollbar-thumb {
+                background: var(--main-color);
+                border-radius: 4px;
+            }
             /* Mobile Start Menu */
             .start-menu-content {
                 width: 90vw;
@@ -964,3 +994,4 @@
                 font-size: 28px !important;
             }
         }
+
