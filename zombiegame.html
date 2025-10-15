@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="zstyle.css">
 </head>
 <body>
- <div id="gameContainer">
+<div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="gameUI">
             <div>Health: <span id="health">100</span></div>
@@ -51,15 +51,15 @@
                 <div class="difficulty-selection">
                     <h3>🎚️ SELECT DIFFICULTY</h3>
                     <div class="difficulty-buttons">
-                        <button onclick="startNewGame('easy')" class="difficulty-button easy-mode">
+                        <button onclick="startNewGame('easy')" class="difficulty-button easy-mode" id="easyButton">
                             😊 EASY MODE
                             <div class="difficulty-desc">Relaxed gameplay, forgiving stats</div>
                         </button>
-                        <button onclick="startNewGame('normal')" class="difficulty-button normal-mode">
+                        <button onclick="startNewGame('normal')" class="difficulty-button normal-mode" id="normalButton">
                             🎯 NORMAL MODE
                             <div class="difficulty-desc">Balanced challenge for most players</div>
                         </button>
-                        <button onclick="startNewGame('hardcore')" class="difficulty-button hardcore-mode">
+                        <button onclick="startNewGame('hardcore')" class="difficulty-button hardcore-mode" id="hardcoreButton">
                             💀 HARDCORE MODE
                             <div class="difficulty-desc">Brutal survival challenge</div>
                         </button>
@@ -67,8 +67,8 @@
                 </div>
                 
                 <div class="menu-options">
-                    <button onclick="showHighScores()" class="menu-button">🏆 HIGH SCORES</button>
-                    <button onclick="showInstructions()" class="menu-button">📖 HOW TO PLAY</button>
+                    <button onclick="showHighScores()" class="menu-button" id="highScoresButton">🏆 HIGH SCORES</button>
+                    <button onclick="showInstructions()" class="menu-button" id="instructionsButton">📖 HOW TO PLAY</button>
                 </div>
                 
                 <div class="game-description">
@@ -162,12 +162,60 @@
 
     <script src="zscript.js"></script>
     <script>
-        // Simple mobile detection
+        // Force mobile detection for testing
         function isMobileDevice() {
-            return window.innerWidth <= 768 || 
+            const mobile = window.innerWidth <= 768 || 
                    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
                    ('ontouchstart' in window);
+            
+            // Show alert to confirm script is running
+            alert('Screen width: ' + window.innerWidth + ', Mobile detected: ' + mobile);
+            return mobile;
         }
+        
+        // Also add direct button fixes immediately
+        window.addEventListener('load', function() {
+            alert('Page loaded, setting up buttons...');
+            
+            // Wait a moment then add touch handlers
+            setTimeout(function() {
+                const buttons = document.querySelectorAll('.difficulty-button');
+                alert('Found ' + buttons.length + ' difficulty buttons');
+                
+                buttons.forEach((button, index) => {
+                    button.addEventListener('touchend', function(e) {
+                        e.preventDefault();
+                        alert('Button ' + index + ' touched!');
+                        
+                        // Try to start game based on button
+                        if (button.textContent.includes('EASY')) {
+                            alert('Starting easy game...');
+                            if (typeof startNewGame === 'function') {
+                                startNewGame('easy');
+                            } else {
+                                alert('startNewGame function not found!');
+                            }
+                        } else if (button.textContent.includes('NORMAL')) {
+                            alert('Starting normal game...');
+                            if (typeof startNewGame === 'function') {
+                                startNewGame('normal');
+                            } else {
+                                alert('startNewGame function not found!');
+                            }
+                        } else if (button.textContent.includes('HARDCORE')) {
+                            alert('Starting hardcore game...');
+                            if (typeof startNewGame === 'function') {
+                                startNewGame('hardcore');
+                            } else {
+                                alert('startNewGame function not found!');
+                            }
+                        }
+                    }, { passive: false });
+                });
+                
+                alert('Touch handlers added to all buttons');
+            }, 2000);
+        });
 
         // Main initialization
         document.addEventListener('DOMContentLoaded', function() {
@@ -973,19 +1021,91 @@
             // Initial check
             setTimeout(checkPauseState, 500);
             
-            // Simple mobile button enhancement
+            // AGGRESSIVE mobile button fix for start menu
             if (isMobile) {
-                console.log('Setting up simple mobile button support...');
+                console.log('Setting up AGGRESSIVE mobile button support...');
                 
-                // Make sure all buttons work on mobile
-                setTimeout(function() {
-                    const allButtons = document.querySelectorAll('button');
-                    allButtons.forEach(button => {
-                        button.style.touchAction = 'manipulation';
-                        button.style.webkitTapHighlightColor = 'rgba(0,0,0,0.1)';
+                // Wait for game script to load, then add touch handlers
+                let attempts = 0;
+                const maxAttempts = 10;
+                
+                function setupMobileButtons() {
+                    attempts++;
+                    console.log(`Mobile button setup attempt ${attempts}`);
+                    
+                    // Find buttons by ID (more reliable)
+                    const easyButton = document.getElementById('easyButton');
+                    const normalButton = document.getElementById('normalButton');
+                    const hardcoreButton = document.getElementById('hardcoreButton');
+                    const highScoresButton = document.getElementById('highScoresButton');
+                    const instructionsButton = document.getElementById('instructionsButton');
+                    
+                    console.log('Buttons found:', {
+                        easy: !!easyButton,
+                        normal: !!normalButton,
+                        hardcore: !!hardcoreButton,
+                        highScores: !!highScoresButton,
+                        instructions: !!instructionsButton,
+                        startNewGameExists: typeof window.startNewGame
                     });
-                    console.log('Enhanced', allButtons.length, 'buttons for mobile');
-                }, 500);
+                    
+                    // If startNewGame function doesn't exist yet, wait and retry
+                    if (typeof window.startNewGame !== 'function' && attempts < maxAttempts) {
+                        setTimeout(setupMobileButtons, 1000);
+                        return;
+                    }
+                    
+                    // Add multiple event types for maximum compatibility
+                    function addMobileEvents(button, action, actionName) {
+                        if (!button) return;
+                        
+                        // Remove any existing handlers to avoid duplicates
+                        button.replaceWith(button.cloneNode(true));
+                        const newButton = document.getElementById(button.id);
+                        
+                        ['touchstart', 'touchend', 'click'].forEach(eventType => {
+                            newButton.addEventListener(eventType, function(e) {
+                                if (eventType === 'touchend' || eventType === 'click') {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    console.log(`${actionName} button ${eventType}!`);
+                                    
+                                    // Visual feedback
+                                    this.style.transform = 'scale(0.95)';
+                                    setTimeout(() => {
+                                        this.style.transform = 'scale(1)';
+                                    }, 100);
+                                    
+                                    // Call the action
+                                    try {
+                                        action();
+                                        console.log(`${actionName} action executed successfully`);
+                                    } catch (error) {
+                                        console.error(`Error executing ${actionName}:`, error);
+                                    }
+                                }
+                            }, { passive: false });
+                        });
+                        
+                        // Also ensure good touch properties
+                        newButton.style.touchAction = 'manipulation';
+                        newButton.style.webkitTapHighlightColor = 'rgba(255,255,255,0.3)';
+                        newButton.style.cursor = 'pointer';
+                        newButton.style.userSelect = 'none';
+                    }
+                    
+                    // Add events to each button
+                    addMobileEvents(easyButton, () => window.startNewGame('easy'), 'Easy');
+                    addMobileEvents(normalButton, () => window.startNewGame('normal'), 'Normal');  
+                    addMobileEvents(hardcoreButton, () => window.startNewGame('hardcore'), 'Hardcore');
+                    addMobileEvents(highScoresButton, () => window.showHighScores(), 'HighScores');
+                    addMobileEvents(instructionsButton, () => window.showInstructions(), 'Instructions');
+                    
+                    console.log('AGGRESSIVE mobile button setup completed!');
+                }
+                
+                // Start setup attempts
+                setTimeout(setupMobileButtons, 500);
             }
         }
 
@@ -993,6 +1113,7 @@
     </script>
 </body>
 </html>
+
 
 
 
