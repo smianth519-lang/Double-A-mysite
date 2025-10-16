@@ -1469,8 +1469,9 @@ const canvas = document.getElementById('gameCanvas');
         
         function purchaseWeapon(weaponKey) {
             const weapon = weapons[weaponKey];
-            if (playerCurrency >= weapon.price && weaponKey !== currentWeapon && playerLevel >= weapon.unlockLevel) {
-                playerCurrency -= weapon.price;
+            const adjustedPrice = getAdjustedWeaponPrice(weaponKey);
+            if (playerCurrency >= adjustedPrice && weaponKey !== currentWeapon && playerLevel >= weapon.unlockLevel) {
+                playerCurrency -= adjustedPrice;
                 currentWeapon = weaponKey;
                 
                 // Update player stats based on weapon
@@ -3719,6 +3720,8 @@ const canvas = document.getElementById('gameCanvas');
                     const storeX = canvas.width - storeWidth - 20;
                     const storeY = 20;
                     
+                    console.log(`Touch in store: ${touchX}, ${touchY} | Store area: ${storeX}, ${storeY}, ${storeWidth}, ${storeHeight}`);
+                    
                     // Construction supplies touch detection
                     let suppliesY = storeY + 80;
                     const supplyKeys = Object.keys(constructionSupplies);
@@ -3729,10 +3732,13 @@ const canvas = document.getElementById('gameCanvas');
                         
                         if (touchX >= storeX + 10 && touchX <= storeX + storeWidth - 20 &&
                             touchY >= suppliesY - 3 && touchY <= suppliesY + 25) {
+                            console.log(`Touch on supply: ${supplyKeys[i]}, canAfford: ${canAfford}, price: ${supply.price}, currency: ${playerCurrency}`);
                             if (canAfford) {
                                 purchaseSupply(supplyKeys[i]);
+                                console.log(`Purchased supply: ${supplyKeys[i]}`);
                             }
                             e.preventDefault();
+                            e.stopPropagation();
                             return;
                         }
                         suppliesY += 28;
@@ -3777,8 +3783,10 @@ const canvas = document.getElementById('gameCanvas');
                                     const canAfford = playerCurrency >= adjustedPrice;
                                     const isNotCurrent = weapon.key !== currentWeapon;
                                     
+                                    console.log(`Touch on weapon: ${weapon.key}, unlocked: ${isUnlocked}, canAfford: ${canAfford}, notCurrent: ${isNotCurrent}, price: ${adjustedPrice}, currency: ${playerCurrency}`);
                                     if (isUnlocked && canAfford && isNotCurrent) {
                                         purchaseWeapon(weapon.key);
+                                        console.log(`Purchased weapon: ${weapon.key}`);
                                         touched = true;
                                     }
                                 }
@@ -3790,7 +3798,13 @@ const canvas = document.getElementById('gameCanvas');
                         });
                         
                         e.preventDefault(); // Prevent default touch behavior in store area
+                        e.stopPropagation(); // Stop event from reaching other handlers
                     }
+                    
+                    // If we're in the store but didn't handle the touch, still prevent default to avoid conflicts
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
                 }
             }
         });
