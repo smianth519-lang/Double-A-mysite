@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tower Defense Master</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="gameHeader">
+            <h1>Tower Defense Master</h1>
+            <div id="gameStats">
+                <div class="stat">
+                    <span class="label">Health:</span>
+                    <span id="health">100</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Money:</span>
+                    <span id="money">500</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Wave:</span>
+                    <span id="wave">1</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Score:</span>
+                    <span id="score">0</span>
+                </div>
+            </div>
+            <button id="startWaveBtn" class="btn">Start Wave</button>
+        </div>
+        
+        <div id="gameArea">
+            <canvas id="gameCanvas" width="1000" height="600"></canvas>
+            
+            <div id="towerShop">
+                <h3>Tower Shop</h3>
+                <div class="tower-item" data-tower="basic">
+                    <div class="tower-icon basic-tower"></div>
+                    <div class="tower-info">
+                        <div class="tower-name">Basic Tower</div>
+                        <div class="tower-cost">$125</div>
+                        <div class="tower-stats">Damage: 20, Range: 80</div>
+                    </div>
+                </div>
+                <div class="tower-item" data-tower="cannon">
+                    <div class="tower-icon cannon-tower"></div>
+                    <div class="tower-info">
+                        <div class="tower-name">Cannon Tower</div>
+                        <div class="tower-cost">$250</div>
+                        <div class="tower-stats">Damage: 50, Range: 70</div>
+                    </div>
+                </div>
+                <div class="tower-item" data-tower="laser">
+                    <div class="tower-icon laser-tower"></div>
+                    <div class="tower-info">
+                        <div class="tower-name">Laser Tower</div>
+                        <div class="tower-cost">$400</div>
+                        <div class="tower-stats">Damage: 35, Range: 100</div>
+                    </div>
+                </div>
+                <div class="tower-item" data-tower="ice">
+                    <div class="tower-icon ice-tower"></div>
+                    <div class="tower-info">
+                        <div class="tower-name">Ice Tower</div>
+                        <div class="tower-cost">$175</div>
+                        <div class="tower-stats">Damage: 15, Slow: 50%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="gameControls">
+            <button id="pauseBtn" class="btn">Pause</button>
+            <button id="speedBtn" class="btn">Speed: 1x</button>
+            <button id="sellTowerBtn" class="btn" disabled>Sell Tower</button>
+            <button id="upgradeTowerBtn" class="btn" disabled>Upgrade Tower</button>
+        </div>
+        
+        <div id="gameMessage" class="hidden">
+            <div id="messageContent">
+                <h2 id="messageTitle"></h2>
+                <p id="messageText"></p>
+                <button id="restartBtn" class="btn">Restart Game</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Scripts -->
+    <script src="game.js"></script>
+    <script src="enemies.js"></script>
+    <script src="towers.js"></script>
+    <script src="projectiles.js"></script>
+    <script src="waves.js"></script>
+    <script src="ui.js"></script>
+</body>
+</html>

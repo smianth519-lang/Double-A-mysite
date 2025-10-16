@@ -1,0 +1,360 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+#gameContainer {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+#gameHeader {
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+#gameHeader h1 {
+    font-size: 24px;
+    color: #ffd700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#gameStats {
+    display: flex;
+    gap: 30px;
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat .label {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+#gameArea {
+    flex: 1;
+    display: flex;
+    position: relative;
+}
+
+#gameCanvas {
+    background: #2c5234;
+    border: 3px solid #1a3a20;
+    cursor: crosshair;
+}
+
+#towerShop {
+    width: 250px;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 20px;
+    overflow-y: auto;
+    border-left: 3px solid #444;
+}
+
+#towerShop h3 {
+    margin-bottom: 20px;
+    color: #ffd700;
+    text-align: center;
+    border-bottom: 2px solid #ffd700;
+    padding-bottom: 10px;
+}
+
+.tower-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.tower-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: #ffd700;
+    transform: translateX(5px);
+}
+
+.tower-item.selected {
+    background: rgba(255, 215, 0, 0.3);
+    border-color: #ffd700;
+}
+
+.tower-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.tower-icon {
+    width: 40px;
+    height: 40px;
+    margin-right: 15px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.basic-tower {
+    background: radial-gradient(circle, #4a90e2, #2c5aa0);
+}
+
+.cannon-tower {
+    background: radial-gradient(circle, #e74c3c, #c0392b);
+}
+
+.laser-tower {
+    background: radial-gradient(circle, #9b59b6, #8e44ad);
+}
+
+.ice-tower {
+    background: radial-gradient(circle, #3498db, #2980b9);
+}
+
+.tower-info {
+    flex: 1;
+}
+
+.tower-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #ffd700;
+}
+
+.tower-cost {
+    color: #2ecc71;
+    font-weight: bold;
+    margin-bottom: 3px;
+}
+
+.tower-stats {
+    font-size: 12px;
+    color: #bbb;
+}
+
+#gameControls {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 15px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn {
+    padding: 10px 20px;
+    background: linear-gradient(45deg, #4a90e2, #357abd);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.btn:hover:not(:disabled) {
+    background: linear-gradient(45deg, #357abd, #2c5aa0);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.btn:disabled {
+    background: #666;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn.danger {
+    background: linear-gradient(45deg, #e74c3c, #c0392b);
+}
+
+.btn.success {
+    background: linear-gradient(45deg, #2ecc71, #27ae60);
+}
+
+#gameMessage {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+#gameMessage.hidden {
+    display: none;
+}
+
+#messageContent {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    max-width: 400px;
+}
+
+#messageTitle {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+#messageText {
+    margin-bottom: 30px;
+    color: #666;
+    line-height: 1.6;
+}
+
+/* Tower placement indicators */
+.tower-placement {
+    position: absolute;
+    pointer-events: none;
+    border: 2px dashed #ffd700;
+    background: rgba(255, 215, 0, 0.2);
+    border-radius: 50%;
+}
+
+.tower-range {
+    position: absolute;
+    pointer-events: none;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Animation classes */
+.shake {
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.pulse {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Responsive design */
+@media (max-width: 1300px) {
+    #gameCanvas {
+        width: 800px;
+        height: 480px;
+    }
+    
+    #towerShop {
+        width: 200px;
+        padding: 15px;
+    }
+    
+    .tower-item {
+        padding: 10px;
+    }
+    
+    .tower-icon {
+        width: 30px;
+        height: 30px;
+        margin-right: 10px;
+    }
+}
+
+@media (max-width: 1000px) {
+    #gameArea {
+        flex-direction: column;
+    }
+    
+    #towerShop {
+        width: 100%;
+        height: 150px;
+        display: flex;
+        overflow-x: auto;
+        padding: 10px;
+    }
+    
+    #towerShop h3 {
+        display: none;
+    }
+    
+    .tower-item {
+        min-width: 200px;
+        margin-right: 10px;
+        margin-bottom: 0;
+    }
+}
+
+/* Health bar styles */
+.health-bar {
+    width: 30px;
+    height: 4px;
+    background: #333;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.health-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #e74c3c, #f39c12, #2ecc71);
+    transition: width 0.3s ease;
+}
+
+/* Loading screen */
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+}
+
+.loading::after {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-left: 10px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
