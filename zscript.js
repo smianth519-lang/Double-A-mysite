@@ -1447,6 +1447,24 @@ const canvas = document.getElementById('gameCanvas');
             if (showStore) {
                 storeScrollY = 0;
             }
+            
+            // Adjust UI layering - put canvas (shop) in front of stats when shop is open
+            const gameCanvas = document.getElementById('gameCanvas');
+            const gameUI = document.getElementById('gameUI');
+            
+            if (gameCanvas && gameUI) {
+                if (showStore) {
+                    // When shop is open, put canvas in front of UI
+                    gameCanvas.style.position = 'relative';
+                    gameCanvas.style.zIndex = '15';
+                    gameUI.style.zIndex = '10';
+                } else {
+                    // When shop is closed, put UI in front of canvas
+                    gameCanvas.style.position = 'relative';
+                    gameCanvas.style.zIndex = '5';
+                    gameUI.style.zIndex = '10';
+                }
+            }
         }
         
         function purchaseWeapon(weaponKey) {
@@ -1460,6 +1478,14 @@ const canvas = document.getElementById('gameCanvas');
                 player.attackRate = weapon.fireRate;
                 
                 showStore = false;
+                // Restore UI layering when shop closes - put UI in front of canvas
+                const gameCanvas = document.getElementById('gameCanvas');
+                const gameUI = document.getElementById('gameUI');
+                if (gameCanvas && gameUI) {
+                    gameCanvas.style.position = 'relative';
+                    gameCanvas.style.zIndex = '5';
+                    gameUI.style.zIndex = '10';
+                }
             }
         }
         
@@ -2778,15 +2804,16 @@ const canvas = document.getElementById('gameCanvas');
                 
                 let currentY = weaponStartY - storeScrollY; // Apply scroll offset
                 
-                // Create clipping region for scrollable area - adjusted for side window
+                // Create clipping region for scrollable area - weapons scroll behind construction supplies
+                const constructionEndY = suppliesY; // End of construction supplies area
                 ctx.save();
                 ctx.beginPath();
-                ctx.rect(storeX, storeY + 70, storeWidth, storeHeight - 110); // Adjusted for compact header
+                ctx.rect(storeX, constructionEndY, storeWidth, storeHeight - (constructionEndY - storeY) - 40); // Clip weapons below construction
                 ctx.clip();
                 
                 Object.keys(weaponCategories).forEach(category => {
-                    // Only render if category is visible - adjusted for side window
-                    if (currentY + 15 > storeY + 70 && currentY < storeY + storeHeight - 30) {
+                    // Only render if category is visible - below construction supplies
+                    if (currentY + 15 > constructionEndY && currentY < storeY + storeHeight - 30) {
                         // Compact category header
                         ctx.font = 'bold 12px Arial';
                         ctx.fillStyle = '#FFFFFF';
@@ -2800,8 +2827,8 @@ const canvas = document.getElementById('gameCanvas');
                     weaponCategories[category].forEach((weapon, i) => {
                         const weaponY = currentY;
                         
-                        // Only render if weapon is visible - adjusted for side window
-                        if (weaponY + weaponHeight > storeY + 70 && weaponY < storeY + storeHeight - 30) {
+                        // Only render if weapon is visible - below construction supplies
+                        if (weaponY + weaponHeight > constructionEndY && weaponY < storeY + storeHeight - 30) {
                             // Check if mouse is hovering over this weapon
                             const isHovered = mouseX >= storeX + 10 && mouseX <= storeX + storeWidth - 10 &&
                                              mouseY >= weaponY - 3 && mouseY <= weaponY + weaponHeight - 3;
@@ -2903,9 +2930,10 @@ const canvas = document.getElementById('gameCanvas');
                 ctx.restore();
                 
                 // Draw compact scrollbar for side window
-                if (currentY + storeScrollY > storeY + storeHeight - 110) {
-                    const scrollbarHeight = Math.max(15, (storeHeight - 110) * (storeHeight - 110) / (currentY + storeScrollY - weaponStartY));
-                    const scrollbarY = storeY + 70 + (storeScrollY / (currentY + storeScrollY - weaponStartY - storeHeight + 110)) * (storeHeight - 110 - scrollbarHeight);
+                const scrollableAreaHeight = storeHeight - (constructionEndY - storeY) - 40;
+                if (currentY + storeScrollY > constructionEndY + scrollableAreaHeight) {
+                    const scrollbarHeight = Math.max(15, scrollableAreaHeight * scrollableAreaHeight / (currentY + storeScrollY - weaponStartY));
+                    const scrollbarY = constructionEndY + (storeScrollY / (currentY + storeScrollY - weaponStartY - scrollableAreaHeight)) * (scrollableAreaHeight - scrollbarHeight);
                     
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
                     ctx.fillRect(storeX + storeWidth - 10, scrollbarY, 6, scrollbarHeight);
@@ -3339,6 +3367,14 @@ const canvas = document.getElementById('gameCanvas');
             currentWeapon = 'pistol';
             playerCurrency = 0;
             showStore = false;
+            // Restore UI layering on game reset - put UI in front of canvas
+            const gameCanvas = document.getElementById('gameCanvas');
+            const gameUI = document.getElementById('gameUI');
+            if (gameCanvas && gameUI) {
+                gameCanvas.style.position = 'relative';
+                gameCanvas.style.zIndex = '5';
+                gameUI.style.zIndex = '10';
+            }
             document.getElementById('autoTargetStatus').textContent = 'ON';
             document.getElementById('autoTargetStatus').style.color = '#00ff00';
             
@@ -3656,5 +3692,6 @@ const canvas = document.getElementById('gameCanvas');
         // Initialize game but don't start automatically
         loadHighScores(); // Load high scores on page load
         // Game will start when user clicks "Start Game" from the start menu
+
 
 
