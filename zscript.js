@@ -3686,10 +3686,11 @@ const canvas = document.getElementById('gameCanvas');
             if (!showStore) return false;
             
             const rect = canvas.getBoundingClientRect();
-            const clickX = clientX - rect.left;
-            const clickY = clientY - rect.top;
+            // Convert screen coordinates to canvas coordinates
+            const clickX = (clientX - rect.left) * (canvas.width / rect.width);
+            const clickY = (clientY - rect.top) * (canvas.height / rect.height);
             
-            console.log('handleStorePurchase called:', clickX, clickY);
+            console.log('handleStorePurchase - Screen:', clientX, clientY, 'Canvas:', clickX, clickY);
             
             // Use same dimensions as side window store
             const storeWidth = Math.min(400, canvas.width * 0.4);
@@ -3862,6 +3863,7 @@ const canvas = document.getElementById('gameCanvas');
         // Initialize game but don't start automatically
         loadHighScores(); // Load high scores on page load
         // Game will start when user clicks "Start Game" from the start menu
+
 
 
 
