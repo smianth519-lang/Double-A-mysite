@@ -6,6 +6,105 @@
     <title>Games - Double A Web Designing</title>
     <link rel="stylesheet" href="style.css">
     <style>
+       nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo:hover {
+            color: #f1c40f;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 2rem;
+        }
+
+        .nav-links li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-links li a:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        .nav-links li a.active {
+            background: rgba(255,255,255,0.3);
+            color: #f1c40f;
+        }
+
+        /* Mobile Navigation */
+        .mobile-menu {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                flex-direction: column;
+                padding: 1rem;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .nav-container {
+                position: relative;
+            }
+        }
+
         .games-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -260,6 +359,26 @@
     </style>
 </head>
 <body>
+    <!-- Navigation Header -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <span>🎮</span>
+                Double A Web Designing
+            </a>
+            
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">🏠 Home</a></li>
+                <li><a href="games.html" class="active">🎮 Games</a></li>
+                <li><a href="recipe_index.html">🍽️ Recipes</a></li>
+                <li><a href="tel:5732415332">📞 Contact</a></li>
+            </ul>
+            
+            <button class="mobile-menu" id="mobileMenu" onclick="toggleMobileMenu()">
+                ☰
+            </button>
+        </div>
+    </nav>
     
     <div class="games-container">
         <div class="games-header">
@@ -478,6 +597,31 @@
     </div>
 
     <script>
+        // Mobile Navigation Toggle
+        function toggleMobileMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            navLinks.classList.toggle('active');
+            
+            // Change hamburger to X when active
+            if (navLinks.classList.contains('active')) {
+                mobileMenu.innerHTML = '✕';
+            } else {
+                mobileMenu.innerHTML = '☰';
+            }
+        }
+
+        // Close mobile menu when clicking on a link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                const navLinks = document.getElementById('navLinks');
+                const mobileMenu = document.getElementById('mobileMenu');
+                navLinks.classList.remove('active');
+                mobileMenu.innerHTML = '☰';
+            });
+        });
+
         function filterGames(category) {
             const games = document.querySelectorAll('.game-card');
             const filters = document.querySelectorAll('.category-filter');
