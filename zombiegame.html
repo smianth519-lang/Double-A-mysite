@@ -282,31 +282,44 @@
                             if (e.target.closest('#mobileActionButtons')) return;
                             
                             const touch = e.touches[0];
-                            console.log('Touch start detected at:', touch.clientX, touch.clientY);
+                            const rect = canvas.getBoundingClientRect();
+                            const canvasX = (touch.clientX - rect.left) * (canvas.width / rect.width);
+                            const canvasY = (touch.clientY - rect.top) * (canvas.height / rect.height);
+                            
+                            console.log('Touch start - Screen:', touch.clientX, touch.clientY, 'Canvas:', canvasX, canvasY);
                             
                             // Handle store purchases before swipe handling
-                            if (typeof window.showStore !== 'undefined' && window.showStore) {
-                                console.log('Store is open, attempting purchase');
+                            if (window.showStore) {
+                                console.log('Store is open, checking purchase');
                                 
-                                // Try direct function call for store purchase
-                                if (typeof window.handleStorePurchase === 'function') {
-                                    console.log('Calling handleStorePurchase function');
-                                    const purchaseHandled = window.handleStorePurchase(touch.clientX, touch.clientY);
-                                    if (purchaseHandled) {
-                                        console.log('Purchase handled successfully');
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        return;
-                                    } else {
-                                        console.log('Purchase not handled (maybe outside store area)');
+                                // Calculate store dimensions (matching zscript.js)
+                                const storeWidth = Math.min(400, canvas.width * 0.4);
+                                const storeHeight = canvas.height - 40;
+                                const storeX = canvas.width - storeWidth - 20;
+                                const storeY = 20;
+                                
+                                console.log('Store bounds:', storeX, storeY, storeWidth, storeHeight);
+                                console.log('Touch in store area?', canvasX >= storeX && canvasX <= storeX + storeWidth && canvasY >= storeY && canvasY <= storeY + storeHeight);
+                                
+                                // Check if touch is in store area
+                                if (canvasX >= storeX && canvasX <= storeX + storeWidth &&
+                                    canvasY >= storeY && canvasY <= storeY + storeHeight) {
+                                    
+                                    console.log('Touch in store, calling purchase handler');
+                                    
+                                    // Call purchase handler with screen coordinates
+                                    if (typeof window.handleStorePurchase === 'function') {
+                                        const purchased = window.handleStorePurchase(touch.clientX, touch.clientY);
+                                        console.log('Purchase result:', purchased);
+                                        if (purchased) {
+                                            e.preventDefault();
+                                            return;
+                                        }
                                     }
-                                } else {
-                                    console.log('handleStorePurchase function not available');
                                 }
-                            } else {
-                                console.log('Store not open or showStore variable not available');
                             }
                             
+                            // Setup swipe data for movement
                             swipeData.startX = touch.clientX;
                             swipeData.startY = touch.clientY;
                             swipeData.isMoving = false;
@@ -316,34 +329,40 @@
                             // Don't interfere with mobile button touches
                             if (e.target.closest('#mobileActionButtons')) return;
                             
-                            e.preventDefault();
                             const touch = e.touches[0];
                             const deltaX = touch.clientX - swipeData.startX;
                             const deltaY = touch.clientY - swipeData.startY;
                             
-                            // Get canvas dimensions and check if shop is open
+                            // Get canvas coordinates
                             const rect = canvas.getBoundingClientRect();
-                            const touchX = touch.clientX - rect.left;
-                            const touchY = touch.clientY - rect.top;
+                            const canvasX = (touch.clientX - rect.left) * (canvas.width / rect.width);
+                            const canvasY = (touch.clientY - rect.top) * (canvas.height / rect.height);
                             
                             // Check if touch is in shop area (when shop is open)
-                            if (typeof window.showStore !== 'undefined' && window.showStore) {
-                                // Shop dimensions (matching zscript.js side window)
+                            if (window.showStore) {
                                 const storeWidth = Math.min(400, canvas.width * 0.4);
                                 const storeX = canvas.width - storeWidth - 20;
                                 const storeY = 20;
                                 const storeHeight = canvas.height - 40;
                                 
-                                if (touchX >= storeX && touchX <= storeX + storeWidth &&
-                                    touchY >= storeY + 70 && touchY <= storeY + storeHeight - 30) {
-                                    // Touch is in shop scrollable area - handle scrolling instead of movement
+                                // Only handle scrolling in weapons section (not construction supplies)
+                                if (canvasX >= storeX && canvasX <= storeX + storeWidth &&
+                                    canvasY >= storeY + 150 && canvasY <= storeY + storeHeight - 30) {
+                                    // Touch is in weapons scrollable area - handle scrolling
                                     if (typeof window.storeScrollY !== 'undefined') {
-                                        window.storeScrollY -= deltaY * 2; // Scroll with touch movement
-                                        const maxScroll = Math.max(0, 2000); // Estimate max content height
+                                        const scrollAmount = deltaY * 1.5;
+                                        window.storeScrollY -= scrollAmount;
+                                        const maxScroll = Math.max(0, 2000);
                                         window.storeScrollY = Math.max(0, Math.min(window.storeScrollY, maxScroll));
+                                        
+                                        // Update zscript.js internal variable too
+                                        if (typeof storeScrollY !== 'undefined') {
+                                            storeScrollY = window.storeScrollY;
+                                        }
                                     }
-                                    swipeData.startY = touch.clientY; // Update for smooth scrolling
-                                    return; // Don't handle as player movement
+                                    swipeData.startY = touch.clientY;
+                                    e.preventDefault();
+                                    return;
                                 }
                             }
                             
@@ -443,6 +462,7 @@
     </script>
 </body>
 </html>
+
 
 
 
