@@ -216,9 +216,168 @@
                     }
                     
                     setInterval(updateMobileControls, 200);
+                    
+                    // Setup Virtual Joystick
+                    const joystickBase = document.getElementById('joystickBase');
+                    const joystickKnob = document.getElementById('joystickKnob');
+                    
+                    if (joystickBase && joystickKnob) {
+                        let joystick = {
+                            active: false,
+                            startX: 0,
+                            startY: 0,
+                            deltaX: 0,
+                            deltaY: 0
+                        };
+                        
+                        // Touch start
+                        joystickBase.addEventListener('touchstart', function(e) {
+                            e.preventDefault();
+                            const touch = e.touches[0];
+                            const rect = joystickBase.getBoundingClientRect();
+                            
+                            joystick.active = true;
+                            joystick.startX = rect.left + rect.width / 2;
+                            joystick.startY = rect.top + rect.height / 2;
+                        });
+                        
+                        // Touch move
+                        document.addEventListener('touchmove', function(e) {
+                            if (!joystick.active) return;
+                            e.preventDefault();
+                            
+                            const touch = e.touches[0];
+                            const deltaX = touch.clientX - joystick.startX;
+                            const deltaY = touch.clientY - joystick.startY;
+                            const maxDistance = 50;
+                            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                            
+                            if (distance <= maxDistance) {
+                                joystick.deltaX = deltaX;
+                                joystick.deltaY = deltaY;
+                            } else {
+                                const angle = Math.atan2(deltaY, deltaX);
+                                joystick.deltaX = Math.cos(angle) * maxDistance;
+                                joystick.deltaY = Math.sin(angle) * maxDistance;
+                            }
+                            
+                            // Update visual position
+                            joystickKnob.style.transform = `translate(-50%, -50%) translate(${joystick.deltaX}px, ${joystick.deltaY}px)`;
+                            
+                            // Simulate keyboard input
+                            const threshold = 15;
+                            simulateKeys({
+                                w: joystick.deltaY < -threshold,
+                                s: joystick.deltaY > threshold,
+                                a: joystick.deltaX < -threshold,
+                                d: joystick.deltaX > threshold
+                            });
+                        });
+                        
+                        // Touch end
+                        document.addEventListener('touchend', function(e) {
+                            if (!joystick.active) return;
+                            
+                            joystick.active = false;
+                            joystick.deltaX = 0;
+                            joystick.deltaY = 0;
+                            
+                            // Reset visual position
+                            joystickKnob.style.transform = 'translate(-50%, -50%)';
+                            
+                            // Release all keys
+                            simulateKeys({ w: false, s: false, a: false, d: false });
+                        });
+                    }
+                    
+                    // Mobile button handlers
+                    function addMobileButton(buttonId, action) {
+                        const button = document.getElementById(buttonId);
+                        if (button) {
+                            button.addEventListener('touchstart', function(e) {
+                                e.preventDefault();
+                                action();
+                            });
+                        }
+                    }
+                    
+                    // Add mobile button events
+                    addMobileButton('mobileAutoBtn', function() {
+                        // Simulate T key for auto-target
+                        simulateKeyPress('KeyT', 84);
+                    });
+                    
+                    addMobileButton('mobileStoreBtn', function() {
+                        // Simulate B key for store
+                        simulateKeyPress('KeyB', 66);
+                    });
+                    
+                    addMobileButton('mobileWallBtn', function() {
+                        // Simulate R key for walls
+                        simulateKeyPress('KeyR', 82);
+                    });
+                    
+                    addMobileButton('mobilePauseBtn', function() {
+                        if (typeof togglePause === 'function') {
+                            togglePause();
+                        }
+                    });
                 }
             }
+            
+            // Key simulation functions
+            let currentKeys = { w: false, s: false, a: false, d: false };
+            
+            function simulateKeys(keys) {
+                for (let key in keys) {
+                    if (keys[key] !== currentKeys[key]) {
+                        currentKeys[key] = keys[key];
+                        const eventType = keys[key] ? 'keydown' : 'keyup';
+                        const keyCode = { w: 87, s: 83, a: 65, d: 68 }[key];
+                        
+                        const event = new KeyboardEvent(eventType, {
+                            key: key.toUpperCase(),
+                            code: `Key${key.toUpperCase()}`,
+                            keyCode: keyCode,
+                            which: keyCode,
+                            bubbles: true
+                        });
+                        document.dispatchEvent(event);
+                    }
+                }
+            }
+            
+            function simulateKeyPress(code, keyCode) {
+                const key = code.replace('Key', '').toLowerCase();
+                
+                // Key down
+                const downEvent = new KeyboardEvent('keydown', {
+                    key: key.toUpperCase(),
+                    code: code,
+                    keyCode: keyCode,
+                    which: keyCode,
+                    bubbles: true
+                });
+                document.dispatchEvent(downEvent);
+                
+                // Key up after short delay
+                setTimeout(() => {
+                    const upEvent = new KeyboardEvent('keyup', {
+                        key: key.toUpperCase(),
+                        code: code,
+                        keyCode: keyCode,
+                        which: keyCode,
+                        bubbles: true
+                    });
+                    document.dispatchEvent(upEvent);
+                }, 100);
+            }
         });
+
+
+    </script>
+</body>
+</html>
 
 
 
