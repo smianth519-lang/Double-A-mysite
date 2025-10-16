@@ -557,7 +557,7 @@
         "Place dough in a greased bowl, cover, and let rise in a warm place for 1 hour or until doubled in size.",
         "Punch down dough and roll out to fit your pizza pan."
     ],
-    "image": "recipe_images/pizza_dough.jpg",
+    "image": "recipe_images/Pizza_Dough.jpg",
     "nutrition": {
         "calories": 150,
         "protein": 4,
@@ -635,4 +635,5 @@
         "fat": 15
     }
     }
+
 ]
