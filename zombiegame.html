@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="zstyle.css">
 </head>
 <body>
-<div id="gameContainer">
+ <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="gameUI">
             <div>Health: <span id="health">100</span></div>
@@ -162,79 +162,64 @@
 
     <script src="zscript.js"></script>
     <script>
-        // Ultra-simple mobile button fix
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                // Find buttons
-                const easyBtn = document.getElementById('easyButton');
-                const normalBtn = document.getElementById('normalButton');
-                const hardcoreBtn = document.getElementById('hardcoreButton');
-                
-                if (easyBtn && normalBtn && hardcoreBtn) {
-                    // Add click events that work on mobile
-                    easyBtn.onclick = function() {
-                        if (typeof window.startNewGame === 'function') {
-                            window.startNewGame('easy');
-                        }
-                    };
-                    
-                    normalBtn.onclick = function() {
-                        if (typeof window.startNewGame === 'function') {
-                            window.startNewGame('normal');
-                        }
-                    };
-                    
-                    hardcoreBtn.onclick = function() {
-                        if (typeof window.startNewGame === 'function') {
-                            window.startNewGame('hardcore');
-                        }
-                    };
-                }
-            }, 2000); // Wait longer for game script to load
-        });
 
-        // Mobile scrolling management - monitor pause state
-        if (isMobileDevice()) {
-            // Function to check if pause overlay is visible
-            function checkPauseState() {
-                const pauseOverlay = document.getElementById('pauseOverlay');
-                const startMenu = document.getElementById('startMenu');
-                const gameOver = document.getElementById('gameOver');
-                const highScoresModal = document.getElementById('highScoresModal');
-                
-                const isPaused = (pauseOverlay && pauseOverlay.style.display !== 'none') ||
-                               (startMenu && startMenu.style.display !== 'none') ||
-                               (gameOver && gameOver.style.display !== 'none') ||
-                               (highScoresModal && highScoresModal.style.display !== 'none');
-                
-                if (isPaused) {
-                    document.body.classList.add('pause-active');
-                } else {
-                    document.body.classList.remove('pause-active');
-                }
-            }
-            
-            // Check pause state periodically
-            setInterval(checkPauseState, 100);
-            
-            // Also check on DOM changes
-            const observer = new MutationObserver(checkPauseState);
-            observer.observe(document.body, {
-                attributes: true,
-                subtree: true,
-                attributeFilter: ['style', 'class']
-            });
-            
-            // Initial check
-            setTimeout(checkPauseState, 500);
-            
 
+        // Mobile detection
+        function isMobile() {
+            return window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         }
 
+        // Add proper mobile touch support for difficulty buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for game script to load
+            setTimeout(function() {
+                const buttons = [
+                    { id: 'easyButton', difficulty: 'easy' },
+                    { id: 'normalButton', difficulty: 'normal' },
+                    { id: 'hardcoreButton', difficulty: 'hardcore' }
+                ];
+                
+                buttons.forEach(function(btnInfo) {
+                    const btn = document.getElementById(btnInfo.id);
+                    if (btn) {
+                        // Add touch event for mobile
+                        btn.addEventListener('touchend', function(e) {
+                            e.preventDefault();
+                            if (typeof window.startNewGame === 'function') {
+                                window.startNewGame(btnInfo.difficulty);
+                            }
+                        });
+                        
+                        // Also ensure click works
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            if (typeof window.startNewGame === 'function') {
+                                window.startNewGame(btnInfo.difficulty);
+                            }
+                        });
+                    }
+                });
+            }, 2000);
+            
+            // Mobile controls management
+            if (isMobile()) {
+                const mobileControls = document.getElementById('mobileControls');
+                if (mobileControls) {
+                    // Show mobile controls when game is running
+                    function updateMobileControls() {
+                        const startMenu = document.getElementById('startMenu');
+                        if (startMenu && startMenu.style.display === 'none') {
+                            mobileControls.style.display = 'block';
+                        } else {
+                            mobileControls.style.display = 'none';
+                        }
+                    }
+                    
+                    setInterval(updateMobileControls, 200);
+                }
+            }
+        });
 
-    </script>
-</body>
-</html>
 
 
 
