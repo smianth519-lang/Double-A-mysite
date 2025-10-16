@@ -282,6 +282,37 @@
                             if (e.target.closest('#mobileActionButtons')) return;
                             
                             const touch = e.touches[0];
+                            
+                            // Handle store purchases before swipe handling
+                            if (typeof showStore !== 'undefined' && showStore) {
+                                const rect = canvas.getBoundingClientRect();
+                                const touchX = touch.clientX - rect.left;
+                                const touchY = touch.clientY - rect.top;
+                                
+                                // Use same dimensions as side window store
+                                const storeWidth = Math.min(400, canvas.width * 0.4);
+                                const storeHeight = canvas.height - 40;
+                                const storeX = canvas.width - storeWidth - 20;
+                                const storeY = 20;
+                                
+                                // Check if touch is in store area
+                                if (touchX >= storeX && touchX <= storeX + storeWidth &&
+                                    touchY >= storeY && touchY <= storeY + storeHeight) {
+                                    
+                                    // Trigger a mousedown event at the same coordinates to use existing purchase logic
+                                    const mouseEvent = new MouseEvent('mousedown', {
+                                        clientX: touch.clientX,
+                                        clientY: touch.clientY,
+                                        bubbles: true
+                                    });
+                                    window.dispatchEvent(mouseEvent);
+                                    
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    return;
+                                }
+                            }
+                            
                             swipeData.startX = touch.clientX;
                             swipeData.startY = touch.clientY;
                             swipeData.isMoving = false;
@@ -418,6 +449,7 @@
     </script>
 </body>
 </html>
+
 
 
 
