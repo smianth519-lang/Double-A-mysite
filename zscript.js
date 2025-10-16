@@ -3649,6 +3649,132 @@ const canvas = document.getElementById('gameCanvas');
             mouse.pressed = false;
         });
 
+        // Add touch event support for mobile store interaction
+        window.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) { // Single finger touch
+                const touch = e.touches[0];
+                
+                // Handle upgrade menu touches
+                if (showUpgradeMenu) {
+                    const rect = canvas.getBoundingClientRect();
+                    const touchX = touch.clientX - rect.left;
+                    const touchY = touch.clientY - rect.top;
+                    
+                    const menuWidth = 600;
+                    const menuHeight = 400;
+                    const menuX = (canvas.width - menuWidth) / 2;
+                    const menuY = (canvas.height - menuHeight) / 2;
+                    const optionStartY = menuY + 140;
+                    const optionHeight = 60;
+                    
+                    // Check if touch is within upgrade options
+                    for (let i = 0; i < availableUpgrades.length; i++) {
+                        const optionY = optionStartY + (i * (optionHeight + 20));
+                        
+                        if (touchX >= menuX + 20 && touchX <= menuX + menuWidth - 20 &&
+                            touchY >= optionY - 5 && touchY <= optionY + optionHeight - 5) {
+                            selectUpgrade(i);
+                            e.preventDefault();
+                            return;
+                        }
+                    }
+                    e.preventDefault();
+                    return;
+                }
+                
+                // Handle store touches
+                if (showStore) {
+                    const rect = canvas.getBoundingClientRect();
+                    const touchX = touch.clientX - rect.left;
+                    const touchY = touch.clientY - rect.top;
+                    
+                    // Use same dimensions as side window store
+                    const storeWidth = Math.min(400, canvas.width * 0.4);
+                    const storeHeight = canvas.height - 40;
+                    const storeX = canvas.width - storeWidth - 20;
+                    const storeY = 20;
+                    
+                    // Construction supplies touch detection
+                    let suppliesY = storeY + 80;
+                    const supplyKeys = Object.keys(constructionSupplies);
+                    
+                    for (let i = 0; i < supplyKeys.length; i++) {
+                        const supply = constructionSupplies[supplyKeys[i]];
+                        const canAfford = playerCurrency >= supply.price;
+                        
+                        if (touchX >= storeX + 10 && touchX <= storeX + storeWidth - 20 &&
+                            touchY >= suppliesY - 3 && touchY <= suppliesY + 25) {
+                            if (canAfford) {
+                                purchaseSupply(supplyKeys[i]);
+                            }
+                            e.preventDefault();
+                            return;
+                        }
+                        suppliesY += 28;
+                    }
+                    
+                    // Weapons section touch detection
+                    const weaponStartY = suppliesY + 10;
+                    const weaponHeight = 35;
+                    
+                    // Group all weapons by category for touch detection
+                    const availableWeapons = Object.keys(weapons);
+                    const weaponCategories = {};
+                    availableWeapons.forEach(key => {
+                        const weapon = weapons[key];
+                        if (!weaponCategories[weapon.category]) {
+                            weaponCategories[weapon.category] = [];
+                        }
+                        weaponCategories[weapon.category].push({key, ...weapon});
+                    });
+                    
+                    let currentY = weaponStartY - storeScrollY; // Apply scroll offset
+                    let touched = false;
+                    
+                    // Check if touch is in the scrollable weapons area
+                    if (touchX >= storeX && touchX <= storeX + storeWidth &&
+                        touchY >= storeY + 70 && touchY <= storeY + storeHeight - 30) {
+                        
+                        Object.keys(weaponCategories).forEach(category => {
+                            // Skip category header
+                            currentY += 15;
+                            
+                            weaponCategories[category].forEach((weapon, i) => {
+                                const weaponY = currentY;
+                                
+                                // Check if touch is on this weapon
+                                if (!touched && touchX >= storeX + 10 && touchX <= storeX + storeWidth - 10 &&
+                                    touchY >= weaponY - 3 && touchY <= weaponY + weaponHeight - 3) {
+                                    
+                                    const weaponObj = weapons[weapon.key];
+                                    const adjustedPrice = getAdjustedWeaponPrice(weapon.key);
+                                    const isUnlocked = playerLevel >= weaponObj.unlockLevel;
+                                    const canAfford = playerCurrency >= adjustedPrice;
+                                    const isNotCurrent = weapon.key !== currentWeapon;
+                                    
+                                    if (isUnlocked && canAfford && isNotCurrent) {
+                                        purchaseWeapon(weapon.key);
+                                        touched = true;
+                                    }
+                                }
+                                
+                                currentY += weaponHeight + 2;
+                            });
+                            
+                            currentY += 3;
+                        });
+                        
+                        e.preventDefault(); // Prevent default touch behavior in store area
+                    }
+                }
+            }
+        });
+
+        window.addEventListener('touchend', (e) => {
+            // Handle touch end if needed
+            e.preventDefault();
+        });
+
         // Add scroll wheel support for store
         window.addEventListener('wheel', (e) => {
             if (showStore) {
@@ -3692,6 +3818,7 @@ const canvas = document.getElementById('gameCanvas');
         // Initialize game but don't start automatically
         loadHighScores(); // Load high scores on page load
         // Game will start when user clicks "Start Game" from the start menu
+
 
 
 
