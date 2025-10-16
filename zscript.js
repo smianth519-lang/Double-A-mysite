@@ -28,7 +28,9 @@ const canvas = document.getElementById('gameCanvas');
         // Currency and Store system
         let playerCurrency = 0;
         let showStore = false;
+        window.showStore = showStore; // Make it globally accessible
         let storeScrollY = 0; // Scroll position for store
+        window.storeScrollY = storeScrollY; // Make it globally accessible
         let currentWeapon = 'pistol';
         
         // High Score System
@@ -1441,11 +1443,13 @@ const canvas = document.getElementById('gameCanvas');
             if (!gameRunning) return;
             
             showStore = !showStore;
+            window.showStore = showStore;
             gamePaused = showStore;
             
             // Reset scroll when opening store
             if (showStore) {
                 storeScrollY = 0;
+                window.storeScrollY = storeScrollY;
             }
             
             // Adjust UI layering - put canvas (shop) in front of stats when shop is open
@@ -1479,6 +1483,7 @@ const canvas = document.getElementById('gameCanvas');
                 player.attackRate = weapon.fireRate;
                 
                 showStore = false;
+                window.showStore = showStore;
                 // Restore UI layering when shop closes - put UI in front of canvas
                 const gameCanvas = document.getElementById('gameCanvas');
                 const gameUI = document.getElementById('gameUI');
@@ -3393,6 +3398,7 @@ const canvas = document.getElementById('gameCanvas');
             currentWeapon = 'pistol';
             playerCurrency = 0;
             showStore = false;
+            window.showStore = showStore;
             // Restore UI layering on game reset - put UI in front of canvas
             const gameCanvas = document.getElementById('gameCanvas');
             const gameUI = document.getElementById('gameUI');
@@ -3674,144 +3680,142 @@ const canvas = document.getElementById('gameCanvas');
         window.addEventListener('mouseup', () => {
             mouse.pressed = false;
         });
-
-        // Add touch event support for mobile store interaction
-        window.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 1) { // Single finger touch
-                const touch = e.touches[0];
+        
+        // Mobile store purchase handler function
+        window.handleStorePurchase = function(clientX, clientY) {
+            if (!showStore) return false;
+            
+            const rect = canvas.getBoundingClientRect();
+            const clickX = clientX - rect.left;
+            const clickY = clientY - rect.top;
+            
+            console.log('handleStorePurchase called:', clickX, clickY);
+            
+            // Use same dimensions as side window store
+            const storeWidth = Math.min(400, canvas.width * 0.4);
+            const storeHeight = canvas.height - 40;
+            const storeX = canvas.width - storeWidth - 20;
+            const storeY = 20;
+            
+            // Construction supplies click detection
+            let suppliesY = storeY + 80;
+            const supplyKeys = Object.keys(constructionSupplies);
+            
+            for (let i = 0; i < supplyKeys.length; i++) {
+                const supply = constructionSupplies[supplyKeys[i]];
+                const canAfford = playerCurrency >= supply.price;
                 
-                // Handle upgrade menu touches
-                if (showUpgradeMenu) {
-                    const rect = canvas.getBoundingClientRect();
-                    const touchX = touch.clientX - rect.left;
-                    const touchY = touch.clientY - rect.top;
-                    
-                    const menuWidth = 600;
-                    const menuHeight = 400;
-                    const menuX = (canvas.width - menuWidth) / 2;
-                    const menuY = (canvas.height - menuHeight) / 2;
-                    const optionStartY = menuY + 140;
-                    const optionHeight = 60;
-                    
-                    // Check if touch is within upgrade options
-                    for (let i = 0; i < availableUpgrades.length; i++) {
-                        const optionY = optionStartY + (i * (optionHeight + 20));
-                        
-                        if (touchX >= menuX + 20 && touchX <= menuX + menuWidth - 20 &&
-                            touchY >= optionY - 5 && touchY <= optionY + optionHeight - 5) {
-                            selectUpgrade(i);
-                            e.preventDefault();
-                            return;
-                        }
+                if (clickX >= storeX + 10 && clickX <= storeX + storeWidth - 20 &&
+                    clickY >= suppliesY - 3 && clickY <= suppliesY + 25) {
+                    if (canAfford) {
+                        console.log('Purchasing supply:', supplyKeys[i]);
+                        purchaseSupply(supplyKeys[i]);
+                    } else {
+                        console.log('Cannot afford supply:', supplyKeys[i]);
                     }
-                    e.preventDefault();
-                    return;
+                    return true;
                 }
+                suppliesY += 28;
+            }
+            
+            // Weapons section
+            const weaponStartY = suppliesY + 10;
+            const weaponHeight = 35;
+            
+            // Group all weapons by category for click detection
+            const availableWeapons = Object.keys(weapons);
+            const weaponCategories = {};
+            availableWeapons.forEach(key => {
+                const weapon = weapons[key];
+                if (!weaponCategories[weapon.category]) {
+                    weaponCategories[weapon.category] = [];
+                }
+                weaponCategories[weapon.category].push({key, ...weapon});
+            });
+            
+            let currentY = weaponStartY - storeScrollY; // Apply scroll offset
+            let clicked = false;
+            
+            // Check if click is in the scrollable weapons area
+            if (clickX >= storeX && clickX <= storeX + storeWidth &&
+                clickY >= storeY + 70 && clickY <= storeY + storeHeight - 30) {
                 
-                // Handle store touches
-                if (showStore) {
-                    const rect = canvas.getBoundingClientRect();
-                    const touchX = touch.clientX - rect.left;
-                    const touchY = touch.clientY - rect.top;
+                Object.keys(weaponCategories).forEach(category => {
+                    // Skip category header
+                    currentY += 15;
                     
-                    // Use same dimensions as side window store
-                    const storeWidth = Math.min(400, canvas.width * 0.4);
-                    const storeHeight = canvas.height - 40;
-                    const storeX = canvas.width - storeWidth - 20;
-                    const storeY = 20;
-                    
-                    console.log(`Touch in store: ${touchX}, ${touchY} | Store area: ${storeX}, ${storeY}, ${storeWidth}, ${storeHeight}`);
-                    
-                    // Construction supplies touch detection
-                    let suppliesY = storeY + 80;
-                    const supplyKeys = Object.keys(constructionSupplies);
-                    
-                    for (let i = 0; i < supplyKeys.length; i++) {
-                        const supply = constructionSupplies[supplyKeys[i]];
-                        const canAfford = playerCurrency >= supply.price;
+                    weaponCategories[category].forEach((weapon, i) => {
+                        const weaponY = currentY;
                         
-                        if (touchX >= storeX + 10 && touchX <= storeX + storeWidth - 20 &&
-                            touchY >= suppliesY - 3 && touchY <= suppliesY + 25) {
-                            console.log(`Touch on supply: ${supplyKeys[i]}, canAfford: ${canAfford}, price: ${supply.price}, currency: ${playerCurrency}`);
-                            if (canAfford) {
-                                purchaseSupply(supplyKeys[i]);
-                                console.log(`Purchased supply: ${supplyKeys[i]}`);
+                        // Check if click is on this weapon
+                        if (!clicked && clickX >= storeX + 10 && clickX <= storeX + storeWidth - 10 &&
+                            clickY >= weaponY - 3 && clickY <= weaponY + weaponHeight - 3) {
+                            
+                            const weaponObj = weapons[weapon.key];
+                            const adjustedPrice = getAdjustedWeaponPrice(weapon.key);
+                            const isUnlocked = playerLevel >= weaponObj.unlockLevel;
+                            const canAfford = playerCurrency >= adjustedPrice;
+                            const isNotCurrent = weapon.key !== currentWeapon;
+                            
+                            console.log('Weapon click detected:', weapon.key, 'Unlocked:', isUnlocked, 'Can afford:', canAfford, 'Not current:', isNotCurrent);
+                            
+                            if (isUnlocked && canAfford && isNotCurrent) {
+                                console.log('Purchasing weapon:', weapon.key);
+                                playerCurrency -= adjustedPrice;
+                                currentWeapon = weapon.key;
+                                player.damage = weaponObj.damage;
+                                player.attackRate = weaponObj.fireRate;
                             }
-                            e.preventDefault();
-                            e.stopPropagation();
+                            clicked = true;
                             return;
                         }
-                        suppliesY += 28;
-                    }
-                    
-                    // Weapons section touch detection
-                    const weaponStartY = suppliesY + 10;
-                    const weaponHeight = 35;
-                    
-                    // Group all weapons by category for touch detection
-                    const availableWeapons = Object.keys(weapons);
-                    const weaponCategories = {};
-                    availableWeapons.forEach(key => {
-                        const weapon = weapons[key];
-                        if (!weaponCategories[weapon.category]) {
-                            weaponCategories[weapon.category] = [];
-                        }
-                        weaponCategories[weapon.category].push({key, ...weapon});
+                        
+                        currentY += weaponHeight + 2; // Match display spacing
                     });
                     
-                    let currentY = weaponStartY - storeScrollY; // Apply scroll offset
-                    let touched = false;
+                    currentY += 3; // Match category spacing
+                });
+            }
+            
+            return clicked;
+        };
+
+        // Touch events for upgrade menu only (store touches handled in HTML)
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1 && showUpgradeMenu) {
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const touchX = touch.clientX - rect.left;
+                const touchY = touch.clientY - rect.top;
+                
+                const menuWidth = 600;
+                const menuHeight = 400;
+                const menuX = (canvas.width - menuWidth) / 2;
+                const menuY = (canvas.height - menuHeight) / 2;
+                const optionStartY = menuY + 140;
+                const optionHeight = 60;
+                
+                // Check if touch is within upgrade options
+                for (let i = 0; i < availableUpgrades.length; i++) {
+                    const optionY = optionStartY + (i * (optionHeight + 20));
                     
-                    // Check if touch is in the scrollable weapons area
-                    if (touchX >= storeX && touchX <= storeX + storeWidth &&
-                        touchY >= storeY + 70 && touchY <= storeY + storeHeight - 30) {
-                        
-                        Object.keys(weaponCategories).forEach(category => {
-                            // Skip category header
-                            currentY += 15;
-                            
-                            weaponCategories[category].forEach((weapon, i) => {
-                                const weaponY = currentY;
-                                
-                                // Check if touch is on this weapon
-                                if (!touched && touchX >= storeX + 10 && touchX <= storeX + storeWidth - 10 &&
-                                    touchY >= weaponY - 3 && touchY <= weaponY + weaponHeight - 3) {
-                                    
-                                    const weaponObj = weapons[weapon.key];
-                                    const adjustedPrice = getAdjustedWeaponPrice(weapon.key);
-                                    const isUnlocked = playerLevel >= weaponObj.unlockLevel;
-                                    const canAfford = playerCurrency >= adjustedPrice;
-                                    const isNotCurrent = weapon.key !== currentWeapon;
-                                    
-                                    console.log(`Touch on weapon: ${weapon.key}, unlocked: ${isUnlocked}, canAfford: ${canAfford}, notCurrent: ${isNotCurrent}, price: ${adjustedPrice}, currency: ${playerCurrency}`);
-                                    if (isUnlocked && canAfford && isNotCurrent) {
-                                        purchaseWeapon(weapon.key);
-                                        console.log(`Purchased weapon: ${weapon.key}`);
-                                        touched = true;
-                                    }
-                                }
-                                
-                                currentY += weaponHeight + 2;
-                            });
-                            
-                            currentY += 3;
-                        });
-                        
-                        e.preventDefault(); // Prevent default touch behavior in store area
-                        e.stopPropagation(); // Stop event from reaching other handlers
+                    if (touchX >= menuX + 20 && touchX <= menuX + menuWidth - 20 &&
+                        touchY >= optionY - 5 && touchY <= optionY + optionHeight - 5) {
+                        selectUpgrade(i);
+                        e.preventDefault();
+                        return;
                     }
-                    
-                    // If we're in the store but didn't handle the touch, still prevent default to avoid conflicts
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return;
                 }
+                e.preventDefault();
             }
         });
 
-        window.addEventListener('touchend', (e) => {
-            // Handle touch end if needed
-            e.preventDefault();
+        canvas.addEventListener('touchend', (e) => {
+            // Handle touch end if needed for store
+            if (showStore) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
         });
 
         // Add scroll wheel support for store
@@ -3823,6 +3827,7 @@ const canvas = document.getElementById('gameCanvas');
                 // Limit scroll bounds (will be calculated dynamically)
                 const maxScroll = Math.max(0, 2000); // Estimate max content height
                 storeScrollY = Math.max(0, Math.min(storeScrollY, maxScroll));
+                window.storeScrollY = storeScrollY;
             }
         });
 
@@ -3857,6 +3862,7 @@ const canvas = document.getElementById('gameCanvas');
         // Initialize game but don't start automatically
         loadHighScores(); // Load high scores on page load
         // Game will start when user clicks "Start Game" from the start menu
+
 
 
 
