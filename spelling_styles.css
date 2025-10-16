@@ -1,0 +1,314 @@
+/* Spelling Jump Adventure Styles */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    background: linear-gradient(135deg, #87CEEB 0%, #98FB98 50%, #FFB6C1 100%);
+    min-height: 100vh;
+    color: #2C3E50;
+    overflow-x: hidden;
+}
+
+#gameContainer {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: #E74C3C;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px;
+}
+
+#scoreBoard {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #3498DB;
+}
+
+#gameArea {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+#gameCanvas {
+    border: 3px solid #34495E;
+    border-radius: 15px;
+    background: linear-gradient(to bottom, #87CEEB, #98FB98);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+#gameUI {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+#wordDisplay {
+    text-align: center;
+    margin-bottom: 25px;
+    padding: 20px;
+    background: linear-gradient(45deg, #FFE135, #FFA500);
+    border-radius: 12px;
+    border: 3px solid #FF6347;
+}
+
+#wordDisplay h2 {
+    color: #2C3E50;
+    margin-bottom: 10px;
+    font-size: 1.3rem;
+}
+
+#targetWord {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #E74C3C;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    margin: 15px 0;
+    letter-spacing: 5px;
+}
+
+#wordHint {
+    font-size: 1.1rem;
+    color: #7B68EE;
+    margin-top: 10px;
+    font-style: italic;
+}
+
+#inputArea {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#userInput {
+    flex: 1;
+    padding: 15px;
+    font-size: 1.2rem;
+    border: 3px solid #3498DB;
+    border-radius: 8px;
+    text-align: center;
+    text-transform: uppercase;
+    background: #F8F9FA;
+}
+
+#userInput:focus {
+    outline: none;
+    border-color: #E74C3C;
+    background: #FFFFFF;
+}
+
+#submitBtn {
+    padding: 15px 25px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    background: linear-gradient(45deg, #FF6347, #FF4500);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#submitBtn:hover {
+    background: linear-gradient(45deg, #FF4500, #FF6347);
+    transform: translateY(-2px);
+}
+
+#submitBtn:active {
+    transform: translateY(0);
+}
+
+#feedback {
+    text-align: center;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#feedback.correct {
+    background: linear-gradient(45deg, #98FB98, #90EE90);
+    color: #006400;
+    border: 2px solid #32CD32;
+}
+
+#feedback.incorrect {
+    background: linear-gradient(45deg, #FFB6C1, #FFA0B4);
+    color: #8B0000;
+    border: 2px solid #DC143C;
+}
+
+#gameControls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+#gameControls button {
+    padding: 12px 20px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#newGameBtn {
+    background: linear-gradient(45deg, #3498DB, #2980B9);
+    color: white;
+}
+
+#hintBtn {
+    background: linear-gradient(45deg, #F39C12, #E67E22);
+    color: white;
+}
+
+#gameControls button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#instructions {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 15px;
+    margin-top: 20px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+#instructions h3 {
+    color: #E74C3C;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+#instructions p {
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+    color: #2C3E50;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+}
+
+.modal-content h2 {
+    color: #E74C3C;
+    margin-bottom: 20px;
+    font-size: 2rem;
+}
+
+#playAgainBtn {
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    background: linear-gradient(45deg, #32CD32, #228B22);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+}
+
+#playAgainBtn:hover {
+    background: linear-gradient(45deg, #228B22, #32CD32);
+    transform: translateY(-2px);
+}
+
+/* Animations */
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.bounce {
+    animation: bounce 0.6s ease;
+}
+
+.pulse {
+    animation: pulse 0.8s ease infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #gameArea {
+        flex-direction: column;
+    }
+    
+    #gameCanvas {
+        width: 100%;
+        height: 400px;
+    }
+    
+    h1 {
+        font-size: 2rem;
+    }
+    
+    #targetWord {
+        font-size: 2.5rem;
+    }
+    
+    #scoreBoard {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
