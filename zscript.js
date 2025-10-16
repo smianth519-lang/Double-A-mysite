@@ -2666,85 +2666,84 @@ const canvas = document.getElementById('gameCanvas');
             
             // Draw weapon store
             if (showStore) {
-                // Dark overlay
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                // Side window design - no full overlay
+                const storeWidth = Math.min(400, canvas.width * 0.4); // Responsive width
+                const storeHeight = canvas.height - 40; // Full height minus padding
+                const storeX = canvas.width - storeWidth - 20; // Right side with margin
+                const storeY = 20; // Top margin
                 
-                // Store background - make much larger to show all weapons
-                const storeWidth = 900;
-                const storeHeight = Math.min(canvas.height - 40, 800); // Take up most of screen height
-                const storeX = (canvas.width - storeWidth) / 2;
-                const storeY = (canvas.height - storeHeight) / 2;
-                
-                // Improved background with better contrast
-                ctx.fillStyle = 'rgba(20, 20, 20, 0.95)';
+                // Side window background with transparency
+                ctx.fillStyle = 'rgba(20, 20, 20, 0.9)';
                 ctx.fillRect(storeX, storeY, storeWidth, storeHeight);
                 
-                // Add inner background for better text readability
-                ctx.fillStyle = 'rgba(40, 40, 40, 0.9)';
-                ctx.fillRect(storeX + 10, storeY + 10, storeWidth - 20, storeHeight - 20);
+                // Inner background for better text readability
+                ctx.fillStyle = 'rgba(40, 40, 40, 0.85)';
+                ctx.fillRect(storeX + 5, storeY + 5, storeWidth - 10, storeHeight - 10);
                 
+                // Side window border
                 ctx.strokeStyle = '#00FF00';
-                ctx.lineWidth = 3;
+                ctx.lineWidth = 2;
                 ctx.strokeRect(storeX, storeY, storeWidth, storeHeight);
                 
-                // Store title with better readability
-                ctx.font = 'bold 28px Arial';
+                // Store title - compact for side window
+                ctx.font = 'bold 16px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#FFFFFF';
                 ctx.strokeStyle = '#000000';
-                ctx.lineWidth = 2;
-                ctx.strokeText('WEAPON & CONSTRUCTION STORE', canvas.width / 2, storeY + 45);
-                ctx.fillText('WEAPON & CONSTRUCTION STORE', canvas.width / 2, storeY + 45);
+                ctx.lineWidth = 1;
+                const titleX = storeX + storeWidth / 2;
+                ctx.strokeText('STORE', titleX, storeY + 25);
+                ctx.fillText('STORE', titleX, storeY + 25);
                 
-                ctx.font = 'bold 20px Arial';
+                ctx.font = 'bold 12px Arial';
                 ctx.fillStyle = '#FFFF00';
-                ctx.strokeText(`Money: $${playerCurrency} | Level: ${playerLevel}`, canvas.width / 2, storeY + 75);
-                ctx.fillText(`Money: $${playerCurrency} | Level: ${playerLevel}`, canvas.width / 2, storeY + 75);
+                ctx.strokeText(`$${playerCurrency} | Lv${playerLevel}`, titleX, storeY + 45);
+                ctx.fillText(`$${playerCurrency} | Lv${playerLevel}`, titleX, storeY + 45);
                 
-                // Display construction supplies first with better readability
-                ctx.font = 'bold 18px Arial';
+                // Construction supplies - compact for side window
+                ctx.font = 'bold 12px Arial';
                 ctx.fillStyle = '#FFFFFF';
                 ctx.strokeStyle = '#000000';
                 ctx.lineWidth = 1;
                 ctx.textAlign = 'left';
-                ctx.strokeText('CONSTRUCTION SUPPLIES:', storeX + 20, storeY + 110);
-                ctx.fillText('CONSTRUCTION SUPPLIES:', storeX + 20, storeY + 110);
+                ctx.strokeText('CONSTRUCTION:', storeX + 10, storeY + 65);
+                ctx.fillText('CONSTRUCTION:', storeX + 10, storeY + 65);
                 
-                let suppliesY = storeY + 130;
+                let suppliesY = storeY + 80;
                 Object.keys(constructionSupplies).forEach((key, index) => {
                     const supply = constructionSupplies[key];
                     const canAfford = playerCurrency >= supply.price;
                     
-                    // Background
+                    // Compact background
                     ctx.fillStyle = canAfford ? 'rgba(0, 100, 0, 0.3)' : 'rgba(100, 0, 0, 0.3)';
-                    ctx.fillRect(storeX + 20, suppliesY - 5, storeWidth - 40, 35);
+                    ctx.fillRect(storeX + 10, suppliesY - 3, storeWidth - 20, 25);
                     
-                    // Border
+                    // Compact border
                     ctx.strokeStyle = canAfford ? '#00FF00' : '#FF4444';
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(storeX + 20, suppliesY - 5, storeWidth - 40, 35);
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(storeX + 10, suppliesY - 3, storeWidth - 20, 25);
                     
-                    // Supply info with better readability
-                    ctx.font = 'bold 16px Arial';
+                    // Compact supply info
+                    ctx.font = 'bold 11px Arial';
                     ctx.fillStyle = canAfford ? '#FFFFFF' : '#CCCCCC';
                     ctx.strokeStyle = '#000000';
-                    ctx.lineWidth = 1;
-                    ctx.strokeText(`${supply.name} - $${supply.price}`, storeX + 40, suppliesY + 12);
-                    ctx.fillText(`${supply.name} - $${supply.price}`, storeX + 40, suppliesY + 12);
+                    ctx.lineWidth = 0.5;
+                    ctx.strokeText(`${supply.name} - $${supply.price}`, storeX + 15, suppliesY + 8);
+                    ctx.fillText(`${supply.name} - $${supply.price}`, storeX + 15, suppliesY + 8);
                     
-                    ctx.font = '12px Arial';
+                    ctx.font = '9px Arial';
                     ctx.fillStyle = canAfford ? '#DDDDDD' : '#999999';
-                    ctx.strokeText(supply.description, storeX + 40, suppliesY + 26);
-                    ctx.fillText(supply.description, storeX + 40, suppliesY + 26);
+                    const shortDesc = supply.description.length > 35 ? supply.description.substring(0, 32) + '...' : supply.description;
+                    ctx.strokeText(shortDesc, storeX + 15, suppliesY + 18);
+                    ctx.fillText(shortDesc, storeX + 15, suppliesY + 18);
                     
-                    suppliesY += 40;
+                    suppliesY += 28;
                 });
                 
-                // Show ALL weapons, not just available ones
+                // Show weapons - compact for side window
                 const availableWeapons = Object.keys(weapons);
-                const weaponStartY = suppliesY + 20;
-                const weaponHeight = 50; // Increased height for better text visibility
+                const weaponStartY = suppliesY + 10;
+                const weaponHeight = 35; // Compact height for side window
                 
                 // Get mouse position for hover effects
                 const rect = canvas.getBoundingClientRect();
@@ -2763,33 +2762,33 @@ const canvas = document.getElementById('gameCanvas');
                 
                 let currentY = weaponStartY - storeScrollY; // Apply scroll offset
                 
-                // Create clipping region for scrollable area
+                // Create clipping region for scrollable area - adjusted for side window
                 ctx.save();
                 ctx.beginPath();
-                ctx.rect(storeX, storeY + 100, storeWidth, storeHeight - 140); // Leave space for title and instructions
+                ctx.rect(storeX, storeY + 70, storeWidth, storeHeight - 110); // Adjusted for compact header
                 ctx.clip();
                 
                 Object.keys(weaponCategories).forEach(category => {
-                    // Only render if category is visible
-                    if (currentY + 20 > storeY + 100 && currentY < storeY + storeHeight - 40) {
-                        // Category header with better readability
-                        ctx.font = 'bold 18px Arial';
+                    // Only render if category is visible - adjusted for side window
+                    if (currentY + 15 > storeY + 70 && currentY < storeY + storeHeight - 30) {
+                        // Compact category header
+                        ctx.font = 'bold 12px Arial';
                         ctx.fillStyle = '#FFFFFF';
                         ctx.strokeStyle = '#000000';
-                        ctx.lineWidth = 2;
-                        ctx.strokeText(`${category}:`, storeX + 30, currentY);
-                        ctx.fillText(`${category}:`, storeX + 30, currentY);
+                        ctx.lineWidth = 1;
+                        ctx.strokeText(`${category}:`, storeX + 15, currentY);
+                        ctx.fillText(`${category}:`, storeX + 15, currentY);
                     }
-                    currentY += 20; // Reduced category header spacing
+                    currentY += 15; // Compact spacing
                     
                     weaponCategories[category].forEach((weapon, i) => {
                         const weaponY = currentY;
                         
-                        // Only render if weapon is visible in scrollable area
-                        if (weaponY + weaponHeight > storeY + 100 && weaponY < storeY + storeHeight - 40) {
+                        // Only render if weapon is visible - adjusted for side window
+                        if (weaponY + weaponHeight > storeY + 70 && weaponY < storeY + storeHeight - 30) {
                             // Check if mouse is hovering over this weapon
-                            const isHovered = mouseX >= storeX + 20 && mouseX <= storeX + storeWidth - 20 &&
-                                             mouseY >= weaponY - 5 && mouseY <= weaponY + weaponHeight - 5;
+                            const isHovered = mouseX >= storeX + 10 && mouseX <= storeX + storeWidth - 10 &&
+                                             mouseY >= weaponY - 3 && mouseY <= weaponY + weaponHeight - 3;
                         
                         const isOwned = weapon.key === currentWeapon;
                         const canAfford = playerCurrency >= weapon.price;
@@ -2808,7 +2807,7 @@ const canvas = document.getElementById('gameCanvas');
                             ctx.fillStyle = 'rgba(80, 0, 0, 0.4)';
                         }
                         
-                        ctx.fillRect(storeX + 20, weaponY - 5, storeWidth - 40, weaponHeight);
+                        ctx.fillRect(storeX + 10, weaponY - 3, storeWidth - 20, weaponHeight);
                         
                         // Border
                         if (isOwned) {
@@ -2820,13 +2819,13 @@ const canvas = document.getElementById('gameCanvas');
                         } else {
                             ctx.strokeStyle = '#666666';
                         }
-                        ctx.lineWidth = 2;
-                        ctx.strokeRect(storeX + 20, weaponY - 5, storeWidth - 40, weaponHeight);
-                        
-                        // Weapon info with better readability
-                        ctx.font = 'bold 15px Arial';
-                        ctx.strokeStyle = '#000000';
                         ctx.lineWidth = 1;
+                        ctx.strokeRect(storeX + 10, weaponY - 3, storeWidth - 20, weaponHeight);
+                        
+                        // Weapon info - compact for side window
+                        ctx.font = 'bold 11px Arial';
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 0.5;
                         
                         if (isOwned) {
                             ctx.fillStyle = '#00FF00'; // Bright green for equipped
@@ -2853,68 +2852,57 @@ const canvas = document.getElementById('gameCanvas');
                             }
                         }
                         
-                        // Truncate long weapon names if needed
-                        const maxNameWidth = storeWidth - 80;
+                        // Truncate weapon names for side window
+                        const maxNameWidth = storeWidth - 30;
                         let weaponNameText = `${weapon.name}${statusText}`;
                         if (ctx.measureText(weaponNameText).width > maxNameWidth) {
-                            const baseName = weapon.name.length > 20 ? weapon.name.substring(0, 17) + '...' : weapon.name;
+                            const baseName = weapon.name.length > 15 ? weapon.name.substring(0, 12) + '...' : weapon.name;
                             weaponNameText = `${baseName}${statusText}`;
                         }
                         
-                        // Draw weapon name with outline for better readability
-                        ctx.strokeText(weaponNameText, storeX + 40, weaponY + 16);
-                        ctx.fillText(weaponNameText, storeX + 40, weaponY + 16);
+                        // Draw compact weapon name
+                        ctx.strokeText(weaponNameText, storeX + 15, weaponY + 12);
+                        ctx.fillText(weaponNameText, storeX + 15, weaponY + 12);
                         
-                        // Stats with better readability
-                        ctx.font = '12px Arial';
+                        // Compact stats
+                        ctx.font = '9px Arial';
                         ctx.fillStyle = '#DDDDDD';
                         const statsLine1 = `DMG: ${weapon.damage} | Rate: ${weapon.fireRate}`;
-                        ctx.strokeText(statsLine1, storeX + 50, weaponY + 30);
-                        ctx.fillText(statsLine1, storeX + 50, weaponY + 30);
+                        ctx.strokeText(statsLine1, storeX + 15, weaponY + 24);
+                        ctx.fillText(statsLine1, storeX + 15, weaponY + 24);
                         
-                        // Description on separate line, truncated if needed
-                        const maxDescWidth = storeWidth - 100;
-                        let description = weapon.description;
-                        if (ctx.measureText(description).width > maxDescWidth) {
-                            while (ctx.measureText(description + '...').width > maxDescWidth && description.length > 10) {
-                                description = description.substring(0, description.length - 1);
-                            }
-                            description += '...';
+                        // Compact description - skip for side window to save space
                         }
                         
-                        // Description with better readability - positioned higher to be fully visible
-                        ctx.font = '11px Arial';
-                        ctx.fillStyle = '#BBBBBB';
-                        ctx.strokeText(description, storeX + 50, weaponY + 44);
-                        ctx.fillText(description, storeX + 50, weaponY + 44);
-                        }
-                        
-                        currentY += weaponHeight + 3; // Reduced spacing between weapons
+                        currentY += weaponHeight + 2; // Compact spacing
                     });
                     
-                    currentY += 5; // Reduced space between categories
+                    currentY += 3; // Compact space between categories
                 });
                 
                 // Restore clipping
                 ctx.restore();
                 
-                // Draw scrollbar
-                if (currentY + storeScrollY > storeY + storeHeight - 140) {
-                    const scrollbarHeight = Math.max(20, (storeHeight - 140) * (storeHeight - 140) / (currentY + storeScrollY - weaponStartY));
-                    const scrollbarY = storeY + 100 + (storeScrollY / (currentY + storeScrollY - weaponStartY - storeHeight + 140)) * (storeHeight - 140 - scrollbarHeight);
+                // Draw compact scrollbar for side window
+                if (currentY + storeScrollY > storeY + storeHeight - 110) {
+                    const scrollbarHeight = Math.max(15, (storeHeight - 110) * (storeHeight - 110) / (currentY + storeScrollY - weaponStartY));
+                    const scrollbarY = storeY + 70 + (storeScrollY / (currentY + storeScrollY - weaponStartY - storeHeight + 110)) * (storeHeight - 110 - scrollbarHeight);
                     
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-                    ctx.fillRect(storeX + storeWidth - 15, scrollbarY, 10, scrollbarHeight);
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                    ctx.fillRect(storeX + storeWidth - 10, scrollbarY, 6, scrollbarHeight);
                 }
                 
-                // Instructions with better readability
-                ctx.font = 'bold 14px Arial';
+                // Compact instructions for side window
+                ctx.font = 'bold 10px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#FFFFFF';
                 ctx.strokeStyle = '#000000';
-                ctx.lineWidth = 2;
-                ctx.strokeText('Q: Hammer | W: Nails | E: Wood | Numbers: Weapons | B: Close | SCROLL: Mouse Wheel', canvas.width / 2, storeY + storeHeight - 20);
-                ctx.fillText('Q: Hammer | W: Nails | E: Wood | Numbers: Weapons | B: Close | SCROLL: Mouse Wheel', canvas.width / 2, storeY + storeHeight - 20);
+                ctx.lineWidth = 0.5;
+                const instrX = storeX + storeWidth / 2;
+                ctx.strokeText('Q/W/E: Items | #: Weapons', instrX, storeY + storeHeight - 25);
+                ctx.fillText('Q/W/E: Items | #: Weapons', instrX, storeY + storeHeight - 25);
+                ctx.strokeText('B: Close | Scroll: Wheel', instrX, storeY + storeHeight - 12);
+                ctx.fillText('B: Close | Scroll: Wheel', instrX, storeY + storeHeight - 12);
             }
         }
         
@@ -3650,3 +3638,4 @@ const canvas = document.getElementById('gameCanvas');
         // Initialize game but don't start automatically
         loadHighScores(); // Load high scores on page load
         // Game will start when user clicks "Start Game" from the start menu
+
