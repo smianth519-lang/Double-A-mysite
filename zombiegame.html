@@ -27,14 +27,12 @@
         <button id="companionButton" onclick="buyCompanion()">+ Add Ally ($100)</button>
         <button id="fullscreenButton" onclick="toggleFullscreen()">⛶</button>
         
-        <!-- Mobile Touch Controls -->
-        <div id="mobileControls" style="display: none;">
-            <div id="mobileActionButtons">
-                <button class="mobile-btn" id="mobileShootBtn">🔫</button>
-                <button class="mobile-btn" id="mobileAutoBtn">🎯</button>
-                <button class="mobile-btn" id="mobileStoreBtn">🏪</button>
-                <button class="mobile-btn" id="mobileWallBtn">🧱</button>
-                <button class="mobile-btn" id="mobilePauseBtn">⏸️</button>
+        <!-- Game Action Controls -->
+        <div id="gameActionControls" style="display: none;">
+            <div id="actionButtons">
+                <button class="action-btn" id="autoTargetBtn" title="Toggle Auto-Target (T)">🎯 AUTO</button>
+                <button class="action-btn" id="storeBtn" title="Open/Close Store (B)">🏪 STORE</button>
+                <button class="action-btn" id="wallsBtn" title="Rebuild Walls (R)">🧱 WALLS</button>
             </div>
         </div>
         
@@ -82,11 +80,11 @@
                 <div class="controls-section">
                     <h4>⌨️ Controls</h4>
                     <div class="control-grid">
-                        <div><strong>WASD</strong> - Move Player</div>
+                        <div><strong>WASD / Swipe</strong> - Move Player</div>
                         <div><strong>Mouse</strong> - Aim & Auto-fire</div>
-                        <div><strong>T</strong> - Toggle Auto-targeting</div>
-                        <div><strong>B</strong> - Open/Close Store</div>
-                        <div><strong>R</strong> - Rebuild Walls (need tools)</div>
+                        <div><strong>T / AUTO Button</strong> - Toggle Auto-targeting</div>
+                        <div><strong>B / STORE Button</strong> - Open/Close Store</div>
+                        <div><strong>R / WALLS Button</strong> - Rebuild Walls (need tools)</div>
                         <div><strong>P / ESC</strong> - Pause Game</div>
                         <div><strong>F11</strong> - Toggle Fullscreen</div>
                         <div><strong>F</strong> - Skip Level 7 (if stuck)</div>
@@ -126,6 +124,7 @@
                 <div class="pause-buttons">
                     <button onclick="togglePause()">Resume Game</button>
                     <button onclick="quitGame()" class="quit-button">Quit to Menu</button>
+                    <button onclick="shareToFacebook()" class="share-button">📘 Share on Facebook</button>
                     <a href="index.html" class="home-button">← Back to Website</a>
                 </div>
             </div>
@@ -141,6 +140,7 @@
             </div>
             <button onclick="restartGame()">Play Again</button>
             <button onclick="showHighScores()">View High Scores</button>
+            <button onclick="shareToFacebook()" class="share-button">📘 Share on Facebook</button>
             <button onclick="returnToMenu()" class="menu-button">Return to Menu</button>
         </div>
 
@@ -162,6 +162,24 @@
         // Mobile detection
         function isMobile() {
             return window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
+        // Facebook share function
+        function shareToFacebook() {
+            const url = encodeURIComponent(window.location.href);
+            const title = encodeURIComponent('🧟 I\'m surviving the zombie apocalypse in Zombie Survivor!');
+            const description = encodeURIComponent('Check out this awesome zombie survival game - see how long you can last against endless waves of zombies!');
+            
+            // Get current game stats if available
+            let shareText = title;
+            if (typeof playerLevel !== 'undefined' && typeof currentWave !== 'undefined' && typeof playerScore !== 'undefined') {
+                shareText = encodeURIComponent(`🧟 I reached Level ${playerLevel}, Wave ${currentWave} with ${playerScore} points in Zombie Survivor! Can you beat my score?`);
+            }
+            
+            const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${shareText}`;
+            
+            // Open in new window
+            window.open(facebookUrl, 'facebook-share-dialog', 'width=626,height=436,resizable=yes,scrollbars=yes');
         }
 
         // Add proper mobile touch support for difficulty buttons
@@ -196,21 +214,57 @@
                 });
             }, 2000);
             
-            // Mobile controls management
-            if (isMobile()) {
-                const mobileControls = document.getElementById('mobileControls');
-                if (mobileControls) {
-                    // Show mobile controls when game is running
-                    function updateMobileControls() {
-                        const startMenu = document.getElementById('startMenu');
-                        if (startMenu && startMenu.style.display === 'none') {
-                            mobileControls.style.display = 'block';
-                        } else {
-                            mobileControls.style.display = 'none';
-                        }
+            // Game action controls management for all devices
+            const gameActionControls = document.getElementById('gameActionControls');
+            if (gameActionControls) {
+                // Show action controls when game is running
+                function updateActionControls() {
+                    const startMenu = document.getElementById('startMenu');
+                    if (startMenu && startMenu.style.display === 'none') {
+                        gameActionControls.style.display = 'block';
+                    } else {
+                        gameActionControls.style.display = 'none';
                     }
-                    
-                    setInterval(updateMobileControls, 200);
+                }
+                
+                setInterval(updateActionControls, 200);
+                
+                // Setup Action Button handlers
+                function addActionButton(buttonId, action) {
+                    const button = document.getElementById(buttonId);
+                    if (button) {
+                        // Add both click and touch events
+                        button.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            action();
+                        });
+                        button.addEventListener('touchstart', function(e) {
+                            e.preventDefault();
+                            action();
+                        });
+                    }
+                }
+                
+                // Add action button events
+                addActionButton('autoTargetBtn', function() {
+                    // Simulate T key for auto-target
+                    simulateKeyPress('KeyT', 84);
+                });
+                
+                addActionButton('storeBtn', function() {
+                    // Simulate B key for store
+                    simulateKeyPress('KeyB', 66);
+                });
+                
+                addActionButton('wallsBtn', function() {
+                    // Simulate R key for walls
+                    simulateKeyPress('KeyR', 82);
+                });
+            }
+            
+            // Mobile swipe controls (only for mobile devices)
+            if (isMobile()) {
+                // Setup Swipe Movement
                     
                     // Setup Swipe Movement
                     let swipeData = {
@@ -241,6 +295,32 @@
                             const touch = e.touches[0];
                             const deltaX = touch.clientX - swipeData.startX;
                             const deltaY = touch.clientY - swipeData.startY;
+                            
+                            // Get canvas dimensions and check if shop is open
+                            const rect = canvas.getBoundingClientRect();
+                            const touchX = touch.clientX - rect.left;
+                            const touchY = touch.clientY - rect.top;
+                            
+                            // Check if touch is in shop area (when shop is open)
+                            if (typeof showStore !== 'undefined' && showStore) {
+                                // Shop dimensions (matching zscript.js side window)
+                                const storeWidth = Math.min(400, canvas.width * 0.4);
+                                const storeX = canvas.width - storeWidth - 20;
+                                const storeY = 20;
+                                const storeHeight = canvas.height - 40;
+                                
+                                if (touchX >= storeX && touchX <= storeX + storeWidth &&
+                                    touchY >= storeY + 70 && touchY <= storeY + storeHeight - 30) {
+                                    // Touch is in shop scrollable area - handle scrolling instead of movement
+                                    if (typeof storeScrollY !== 'undefined') {
+                                        storeScrollY -= deltaY * 2; // Scroll with touch movement
+                                        const maxScroll = Math.max(0, 2000); // Estimate max content height
+                                        storeScrollY = Math.max(0, Math.min(storeScrollY, maxScroll));
+                                    }
+                                    swipeData.startY = touch.clientY; // Update for smooth scrolling
+                                    return; // Don't handle as player movement
+                                }
+                            }
                             
                             // Check if we've moved far enough to start movement
                             const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -282,40 +362,6 @@
                             swipeData.isMoving = false;
                         });
                     }
-                    
-                    // Mobile button handlers
-                    function addMobileButton(buttonId, action) {
-                        const button = document.getElementById(buttonId);
-                        if (button) {
-                            button.addEventListener('touchstart', function(e) {
-                                e.preventDefault();
-                                action();
-                            });
-                        }
-                    }
-                    
-                    // Add mobile button events
-                    addMobileButton('mobileAutoBtn', function() {
-                        // Simulate T key for auto-target
-                        simulateKeyPress('KeyT', 84);
-                    });
-                    
-                    addMobileButton('mobileStoreBtn', function() {
-                        // Simulate B key for store
-                        simulateKeyPress('KeyB', 66);
-                    });
-                    
-                    addMobileButton('mobileWallBtn', function() {
-                        // Simulate R key for walls
-                        simulateKeyPress('KeyR', 82);
-                    });
-                    
-                    addMobileButton('mobilePauseBtn', function() {
-                        if (typeof togglePause === 'function') {
-                            togglePause();
-                        }
-                    });
-                }
             }
             
             // Key simulation functions
@@ -367,10 +413,12 @@
             }
         });
 
-
+            
+        
     </script>
 </body>
 </html>
+
 
 
 
