@@ -29,11 +29,6 @@
         
         <!-- Mobile Touch Controls -->
         <div id="mobileControls" style="display: none;">
-            <div id="virtualJoystick">
-                <div id="joystickBase">
-                    <div id="joystickKnob"></div>
-                </div>
-            </div>
             <div id="mobileActionButtons">
                 <button class="mobile-btn" id="mobileShootBtn">🔫</button>
                 <button class="mobile-btn" id="mobileAutoBtn">🎯</button>
@@ -217,76 +212,74 @@
                     
                     setInterval(updateMobileControls, 200);
                     
-                    // Setup Virtual Joystick
-                    const joystickBase = document.getElementById('joystickBase');
-                    const joystickKnob = document.getElementById('joystickKnob');
+                    // Setup Swipe Movement
+                    let swipeData = {
+                        startX: 0,
+                        startY: 0,
+                        isMoving: false,
+                        minSwipeDistance: 30
+                    };
                     
-                    if (joystickBase && joystickKnob) {
-                        let joystick = {
-                            active: false,
-                            startX: 0,
-                            startY: 0,
-                            deltaX: 0,
-                            deltaY: 0
-                        };
-                        
-                        // Touch start
-                        joystickBase.addEventListener('touchstart', function(e) {
-                            e.preventDefault();
-                            const touch = e.touches[0];
-                            const rect = joystickBase.getBoundingClientRect();
+                    // Add swipe listeners to the canvas (game area)
+                    const canvas = document.getElementById('gameCanvas');
+                    if (canvas) {
+                        canvas.addEventListener('touchstart', function(e) {
+                            // Don't interfere with mobile button touches
+                            if (e.target.closest('#mobileActionButtons')) return;
                             
-                            joystick.active = true;
-                            joystick.startX = rect.left + rect.width / 2;
-                            joystick.startY = rect.top + rect.height / 2;
+                            const touch = e.touches[0];
+                            swipeData.startX = touch.clientX;
+                            swipeData.startY = touch.clientY;
+                            swipeData.isMoving = false;
                         });
                         
-                        // Touch move
-                        document.addEventListener('touchmove', function(e) {
-                            if (!joystick.active) return;
-                            e.preventDefault();
+                        canvas.addEventListener('touchmove', function(e) {
+                            // Don't interfere with mobile button touches
+                            if (e.target.closest('#mobileActionButtons')) return;
                             
+                            e.preventDefault();
                             const touch = e.touches[0];
-                            const deltaX = touch.clientX - joystick.startX;
-                            const deltaY = touch.clientY - joystick.startY;
-                            const maxDistance = 50;
+                            const deltaX = touch.clientX - swipeData.startX;
+                            const deltaY = touch.clientY - swipeData.startY;
+                            
+                            // Check if we've moved far enough to start movement
                             const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-                            
-                            if (distance <= maxDistance) {
-                                joystick.deltaX = deltaX;
-                                joystick.deltaY = deltaY;
-                            } else {
-                                const angle = Math.atan2(deltaY, deltaX);
-                                joystick.deltaX = Math.cos(angle) * maxDistance;
-                                joystick.deltaY = Math.sin(angle) * maxDistance;
+                            if (distance > swipeData.minSwipeDistance) {
+                                swipeData.isMoving = true;
+                                
+                                // Determine primary direction and simulate key press
+                                const absX = Math.abs(deltaX);
+                                const absY = Math.abs(deltaY);
+                                
+                                if (absX > absY) {
+                                    // Horizontal movement
+                                    if (deltaX > 0) {
+                                        // Swipe right = move right
+                                        simulateKeys({ w: false, s: false, a: false, d: true });
+                                    } else {
+                                        // Swipe left = move left
+                                        simulateKeys({ w: false, s: false, a: true, d: false });
+                                    }
+                                } else {
+                                    // Vertical movement
+                                    if (deltaY > 0) {
+                                        // Swipe down = move down
+                                        simulateKeys({ w: false, s: true, a: false, d: false });
+                                    } else {
+                                        // Swipe up = move up
+                                        simulateKeys({ w: true, s: false, a: false, d: false });
+                                    }
+                                }
                             }
-                            
-                            // Update visual position
-                            joystickKnob.style.transform = `translate(-50%, -50%) translate(${joystick.deltaX}px, ${joystick.deltaY}px)`;
-                            
-                            // Simulate keyboard input
-                            const threshold = 15;
-                            simulateKeys({
-                                w: joystick.deltaY < -threshold,
-                                s: joystick.deltaY > threshold,
-                                a: joystick.deltaX < -threshold,
-                                d: joystick.deltaX > threshold
-                            });
                         });
                         
-                        // Touch end
-                        document.addEventListener('touchend', function(e) {
-                            if (!joystick.active) return;
+                        canvas.addEventListener('touchend', function(e) {
+                            // Don't interfere with mobile button touches
+                            if (e.target.closest('#mobileActionButtons')) return;
                             
-                            joystick.active = false;
-                            joystick.deltaX = 0;
-                            joystick.deltaY = 0;
-                            
-                            // Reset visual position
-                            joystickKnob.style.transform = 'translate(-50%, -50%)';
-                            
-                            // Release all keys
+                            // Stop all movement when touch ends
                             simulateKeys({ w: false, s: false, a: false, d: false });
+                            swipeData.isMoving = false;
                         });
                     }
                     
@@ -378,6 +371,7 @@
     </script>
 </body>
 </html>
+
 
 
 
