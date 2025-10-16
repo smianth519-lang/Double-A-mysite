@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spelling Jump Adventure</title>
+    <link rel="stylesheet" href="spelling_styles.css">
+</head>
+<body>
+    <div id="gameContainer">
+        <header>
+            <h1>🌟 Spelling Jump Adventure 🌟</h1>
+            <div id="scoreBoard">
+                <span>Score: <span id="score">0</span></span>
+                <span>Level: <span id="level">1</span></span>
+            </div>
+        </header>
+
+        <div id="gameArea">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+            
+            <div id="gameUI">
+                <div id="wordDisplay">
+                    <h2>Spell this word:</h2>
+                    <div id="targetWord">CAT</div>
+                    <div id="wordHint">🐱 A furry pet that meows</div>
+                </div>
+                
+                <div id="inputArea">
+                    <input type="text" id="userInput" placeholder="Type the word here..." maxlength="20">
+                    <button id="submitBtn">Jump!</button>
+                </div>
+                
+                <div id="feedback"></div>
+                
+                <div id="gameControls">
+                    <button id="newGameBtn">New Game</button>
+                    <button id="hintBtn">💡 Hint</button>
+                    <button id="speakBtn">🔊 Say Word</button>
+                    <button id="toggleSpeechBtn">🔊 Speech: ON</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="instructions">
+            <h3>How to Play:</h3>
+            <p>🎯 Spell the word correctly to help your character jump to the next platform!</p>
+            <p>💰 Collect coins, ⭐ stars, and ⚡ power-ups as you climb!</p>
+            <p>🔥 Build word streaks for bonus points!</p>
+            <p>🏆 Complete goals to earn special rewards!</p>
+        </div>
+        
+        <div id="goalsSection" style="background: rgba(255, 255, 255, 0.9); padding: 20px; border-radius: 15px; margin-top: 20px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);">
+            <h3 style="color: #E74C3C; margin-bottom: 15px; text-align: center;">🏆 Collectables & Goals</h3>
+            <div style="display: flex; justify-content: space-around; margin-bottom: 15px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem;">💰</div>
+                    <div><strong>Coins</strong></div>
+                    <div style="font-size: 0.9rem; color: #666;">+10 points each</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem;">⭐</div>
+                    <div><strong>Stars</strong></div>
+                    <div style="font-size: 0.9rem; color: #666;">+25 points each</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem;">⚡</div>
+                    <div><strong>Power-ups</strong></div>
+                    <div style="font-size: 0.9rem; color: #666;">Double points!</div>
+                </div>
+            </div>
+            <p style="text-align: center; color: #2C3E50; font-size: 0.95rem;">
+                🎯 Complete goals to unlock rewards and climb higher! 
+                🔥 Build streaks for bonus points!
+            </p>
+        </div>
+    </div>
+
+    <div id="gameOverModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>🎉 Great Job! 🎉</h2>
+            <p id="finalScore">You reached the top with a score of 0!</p>
+            <button id="playAgainBtn">Play Again</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
