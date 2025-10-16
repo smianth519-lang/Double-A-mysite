@@ -1442,9 +1442,34 @@ const canvas = document.getElementById('gameCanvas');
         function toggleStore() {
             if (!gameRunning) return;
             
+            // Remember the pause state before opening store
+            if (!showStore) {
+                // Store is about to open - remember if game was already paused
+                window.wasPausedBeforeStore = gamePaused;
+            }
+            
             showStore = !showStore;
             window.showStore = showStore;
-            gamePaused = showStore;
+            
+            if (showStore) {
+                // Store is opening - pause the game
+                gamePaused = true;
+            } else {
+                // Store is closing - restore previous pause state
+                gamePaused = window.wasPausedBeforeStore || false;
+                
+                // Update pause overlay to match the restored state
+                const pauseButton = document.getElementById('pauseButton');
+                const pauseOverlay = document.getElementById('pauseOverlay');
+                
+                if (gamePaused && pauseOverlay && pauseButton) {
+                    pauseButton.textContent = '▶';
+                    pauseOverlay.style.display = 'block';
+                } else if (pauseOverlay && pauseButton) {
+                    pauseButton.textContent = '⏸';
+                    pauseOverlay.style.display = 'none';
+                }
+            }
             
             // Reset scroll when opening store
             if (showStore) {
@@ -1455,18 +1480,34 @@ const canvas = document.getElementById('gameCanvas');
             // Adjust UI layering - put canvas (shop) in front of stats when shop is open
             const gameCanvas = document.getElementById('gameCanvas');
             const gameUI = document.getElementById('gameUI');
+            const pauseButton = document.getElementById('pauseButton');
+            const companionButton = document.getElementById('companionButton');
+            const fullscreenButton = document.getElementById('fullscreenButton');
+            const actionControls = document.getElementById('gameActionControls');
             
             if (gameCanvas && gameUI) {
                 if (showStore) {
-                    // When shop is open, put canvas in front of UI
+                    // When shop is open, put canvas in front of UI but keep buttons visible
                     gameCanvas.style.position = 'relative';
                     gameCanvas.style.zIndex = '15';
                     gameUI.style.zIndex = '10';
+                    
+                    // Ensure control buttons stay above the canvas
+                    if (pauseButton) pauseButton.style.zIndex = '20';
+                    if (companionButton) companionButton.style.zIndex = '20';
+                    if (fullscreenButton) fullscreenButton.style.zIndex = '20';
+                    if (actionControls) actionControls.style.zIndex = '20';
                 } else {
-                    // When shop is closed, put UI in front of canvas
+                    // When shop is closed, put UI in front of canvas but keep buttons visible
                     gameCanvas.style.position = 'relative';
                     gameCanvas.style.zIndex = '5';
                     gameUI.style.zIndex = '10';
+                    
+                    // Keep buttons visible with higher z-index even when shop is closed
+                    if (pauseButton) pauseButton.style.zIndex = '15';
+                    if (companionButton) companionButton.style.zIndex = '15';
+                    if (fullscreenButton) fullscreenButton.style.zIndex = '15';
+                    if (actionControls) actionControls.style.zIndex = '15';
                 }
             }
         }
@@ -1484,13 +1525,39 @@ const canvas = document.getElementById('gameCanvas');
                 
                 showStore = false;
                 window.showStore = showStore;
+                
+                // Restore previous pause state when store closes
+                gamePaused = window.wasPausedBeforeStore || false;
+                
+                // Update pause overlay to match the restored state
+                const pauseButton = document.getElementById('pauseButton');
+                const pauseOverlay = document.getElementById('pauseOverlay');
+                
+                if (gamePaused && pauseOverlay && pauseButton) {
+                    pauseButton.textContent = '▶';
+                    pauseOverlay.style.display = 'block';
+                } else if (pauseOverlay && pauseButton) {
+                    pauseButton.textContent = '⏸';
+                    pauseOverlay.style.display = 'none';
+                }
+                
                 // Restore UI layering when shop closes - put UI in front of canvas
                 const gameCanvas = document.getElementById('gameCanvas');
                 const gameUI = document.getElementById('gameUI');
+                const companionButton = document.getElementById('companionButton');
+                const fullscreenButton = document.getElementById('fullscreenButton');
+                const actionControls = document.getElementById('gameActionControls');
+                
                 if (gameCanvas && gameUI) {
                     gameCanvas.style.position = 'relative';
                     gameCanvas.style.zIndex = '5';
                     gameUI.style.zIndex = '10';
+                    
+                    // Keep buttons visible with higher z-index even when shop closes
+                    if (pauseButton) pauseButton.style.zIndex = '15';
+                    if (companionButton) companionButton.style.zIndex = '15';
+                    if (fullscreenButton) fullscreenButton.style.zIndex = '15';
+                    if (actionControls) actionControls.style.zIndex = '15';
                 }
             }
         }
@@ -3863,6 +3930,7 @@ const canvas = document.getElementById('gameCanvas');
         // Initialize game but don't start automatically
         loadHighScores(); // Load high scores on page load
         // Game will start when user clicks "Start Game" from the start menu
+
 
 
 
