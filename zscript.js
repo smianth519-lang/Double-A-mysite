@@ -3025,9 +3025,22 @@ const canvas = document.getElementById('gameCanvas');
             wave = 1;
             zombiesPerWave = 5;
             zombiesKilled = 0;
-            playerXP = 0;
-            playerLevel = 1;
-            xpToNextLevel = 100;
+            
+            // Set starting XP and level based on difficulty for better progression
+            if (gameDifficulty === 'easy') {
+                playerXP = 250; // Start with enough XP for level 3
+                playerLevel = 3;
+                xpToNextLevel = 115; // Already scaled for level 3
+            } else if (gameDifficulty === 'normal') {
+                playerXP = 80; // Start close to level 2
+                playerLevel = 1;
+                xpToNextLevel = 100;
+            } else {
+                playerXP = 0; // Hardcore starts with nothing
+                playerLevel = 1;
+                xpToNextLevel = 100;
+            }
+            
             currentWeapon = 'pistol';
             
             // Set starting currency based on difficulty
@@ -3354,9 +3367,21 @@ const canvas = document.getElementById('gameCanvas');
             score = 0;
             wave = 1;
             zombiesPerWave = 5;
-            playerXP = 0;
-            playerLevel = 1;
-            xpToNextLevel = 100;
+            
+            // Set starting XP and level based on difficulty for better progression
+            if (gameDifficulty === 'easy') {
+                playerXP = 250; // Start with enough XP for level 3
+                playerLevel = 3;
+                xpToNextLevel = 115; // Already scaled for level 3
+            } else if (gameDifficulty === 'normal') {
+                playerXP = 80; // Start close to level 2
+                playerLevel = 1;
+                xpToNextLevel = 100;
+            } else {
+                playerXP = 0; // Hardcore starts with nothing
+                playerLevel = 1;
+                xpToNextLevel = 100;
+            }
             showUpgradeMenu = false;
             availableUpgrades = [];
             
