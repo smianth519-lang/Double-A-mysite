@@ -2672,6 +2672,11 @@ const canvas = document.getElementById('gameCanvas');
                 const storeX = canvas.width - storeWidth - 20; // Right side with margin
                 const storeY = 20; // Top margin
                 
+                // Get mouse position for hover effects (used throughout store)
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = mouse.x - rect.left;
+                const mouseY = mouse.y - rect.top;
+                
                 // Side window background with transparency
                 ctx.fillStyle = 'rgba(20, 20, 20, 0.9)';
                 ctx.fillRect(storeX, storeY, storeWidth, storeHeight);
@@ -2714,26 +2719,42 @@ const canvas = document.getElementById('gameCanvas');
                     const supply = constructionSupplies[key];
                     const canAfford = playerCurrency >= supply.price;
                     
-                    // Compact background
-                    ctx.fillStyle = canAfford ? 'rgba(0, 100, 0, 0.3)' : 'rgba(100, 0, 0, 0.3)';
+                    // Check if mouse is hovering over this supply
+                    const isHovered = mouseX >= storeX + 10 && mouseX <= storeX + storeWidth - 10 &&
+                                     mouseY >= suppliesY - 3 && mouseY <= suppliesY + 22;
+                    
+                    // Button-like background with hover effect
+                    if (canAfford && isHovered) {
+                        ctx.fillStyle = 'rgba(0, 150, 0, 0.6)'; // Brighter on hover
+                    } else if (canAfford) {
+                        ctx.fillStyle = 'rgba(0, 100, 0, 0.4)';
+                    } else {
+                        ctx.fillStyle = 'rgba(100, 0, 0, 0.3)';
+                    }
                     ctx.fillRect(storeX + 10, suppliesY - 3, storeWidth - 20, 25);
                     
-                    // Compact border
-                    ctx.strokeStyle = canAfford ? '#00FF00' : '#FF4444';
-                    ctx.lineWidth = 1;
+                    // Button-like border with hover effect
+                    if (canAfford && isHovered) {
+                        ctx.strokeStyle = '#44FF44';
+                        ctx.lineWidth = 2;
+                    } else {
+                        ctx.strokeStyle = canAfford ? '#00FF00' : '#FF4444';
+                        ctx.lineWidth = 1;
+                    }
                     ctx.strokeRect(storeX + 10, suppliesY - 3, storeWidth - 20, 25);
                     
-                    // Compact supply info
+                    // Supply info with click hint
                     ctx.font = 'bold 11px Arial';
-                    ctx.fillStyle = canAfford ? '#FFFFFF' : '#CCCCCC';
+                    ctx.fillStyle = canAfford ? (isHovered ? '#FFFF00' : '#FFFFFF') : '#CCCCCC';
                     ctx.strokeStyle = '#000000';
                     ctx.lineWidth = 0.5;
-                    ctx.strokeText(`${supply.name} - $${supply.price}`, storeX + 15, suppliesY + 8);
-                    ctx.fillText(`${supply.name} - $${supply.price}`, storeX + 15, suppliesY + 8);
+                    const buttonText = canAfford ? `${supply.name} - $${supply.price} (CLICK)` : `${supply.name} - $${supply.price}`;
+                    ctx.strokeText(buttonText, storeX + 15, suppliesY + 8);
+                    ctx.fillText(buttonText, storeX + 15, suppliesY + 8);
                     
                     ctx.font = '9px Arial';
                     ctx.fillStyle = canAfford ? '#DDDDDD' : '#999999';
-                    const shortDesc = supply.description.length > 35 ? supply.description.substring(0, 32) + '...' : supply.description;
+                    const shortDesc = supply.description.length > 30 ? supply.description.substring(0, 27) + '...' : supply.description;
                     ctx.strokeText(shortDesc, storeX + 15, suppliesY + 18);
                     ctx.fillText(shortDesc, storeX + 15, suppliesY + 18);
                     
@@ -2744,11 +2765,6 @@ const canvas = document.getElementById('gameCanvas');
                 const availableWeapons = Object.keys(weapons);
                 const weaponStartY = suppliesY + 10;
                 const weaponHeight = 35; // Compact height for side window
-                
-                // Get mouse position for hover effects
-                const rect = canvas.getBoundingClientRect();
-                const mouseX = mouse.x - rect.left;
-                const mouseY = mouse.y - rect.top;
                 
                 // Group weapons by category
                 const weaponCategories = {};
@@ -2794,32 +2810,35 @@ const canvas = document.getElementById('gameCanvas');
                         const canAfford = playerCurrency >= weapon.price;
                         const isUnlocked = playerLevel >= weapon.unlockLevel;
                         
-                        // Background with hover/status effects
+                        // Button-like background with hover/status effects
                         if (isOwned) {
                             ctx.fillStyle = 'rgba(0, 100, 0, 0.8)';
                         } else if (!isUnlocked) {
                             ctx.fillStyle = 'rgba(100, 100, 0, 0.3)'; // Yellow for locked
                         } else if (canAfford && isHovered) {
-                            ctx.fillStyle = 'rgba(0, 150, 0, 0.6)';
+                            ctx.fillStyle = 'rgba(0, 180, 0, 0.7)'; // Brighter green on hover
                         } else if (canAfford) {
-                            ctx.fillStyle = 'rgba(0, 80, 0, 0.4)';
+                            ctx.fillStyle = 'rgba(0, 100, 0, 0.5)'; // Clickable green
                         } else {
                             ctx.fillStyle = 'rgba(80, 0, 0, 0.4)';
                         }
                         
                         ctx.fillRect(storeX + 10, weaponY - 3, storeWidth - 20, weaponHeight);
                         
-                        // Border
+                        // Button-like border with hover effects
                         if (isOwned) {
                             ctx.strokeStyle = '#00FF00';
+                            ctx.lineWidth = 2;
                         } else if (!isUnlocked) {
                             ctx.strokeStyle = '#FFFF00'; // Yellow border for locked
+                            ctx.lineWidth = 1;
                         } else if (canAfford) {
-                            ctx.strokeStyle = isHovered ? '#44FF44' : '#006600';
+                            ctx.strokeStyle = isHovered ? '#66FF66' : '#00CC00';
+                            ctx.lineWidth = isHovered ? 2 : 1; // Thicker border on hover
                         } else {
                             ctx.strokeStyle = '#666666';
+                            ctx.lineWidth = 1;
                         }
-                        ctx.lineWidth = 1;
                         ctx.strokeRect(storeX + 10, weaponY - 3, storeWidth - 20, weaponHeight);
                         
                         // Weapon info - compact for side window
@@ -2832,7 +2851,7 @@ const canvas = document.getElementById('gameCanvas');
                         } else if (!isUnlocked) {
                             ctx.fillStyle = '#FFAA00'; // Orange for locked
                         } else if (canAfford) {
-                            ctx.fillStyle = '#FFFFFF'; // White for affordable
+                            ctx.fillStyle = isHovered ? '#FFFF00' : '#FFFFFF'; // Yellow on hover, white normally
                         } else {
                             ctx.fillStyle = '#AAAAAA'; // Light gray for too expensive
                         }
@@ -2899,10 +2918,10 @@ const canvas = document.getElementById('gameCanvas');
                 ctx.strokeStyle = '#000000';
                 ctx.lineWidth = 0.5;
                 const instrX = storeX + storeWidth / 2;
-                ctx.strokeText('Q/W/E: Items | #: Weapons', instrX, storeY + storeHeight - 25);
-                ctx.fillText('Q/W/E: Items | #: Weapons', instrX, storeY + storeHeight - 25);
-                ctx.strokeText('B: Close | Scroll: Wheel', instrX, storeY + storeHeight - 12);
-                ctx.fillText('B: Close | Scroll: Wheel', instrX, storeY + storeHeight - 12);
+                ctx.strokeText('CLICK TO BUY ITEMS', instrX, storeY + storeHeight - 25);
+                ctx.fillText('CLICK TO BUY ITEMS', instrX, storeY + storeHeight - 25);
+                ctx.strokeText('B: Close | Scroll: Wheel/Touch', instrX, storeY + storeHeight - 12);
+                ctx.fillText('B: Close | Scroll: Wheel/Touch', instrX, storeY + storeHeight - 12);
             }
         }
         
@@ -3388,33 +3407,8 @@ const canvas = document.getElementById('gameCanvas');
                 return; // Don't process other keys during upgrade menu
             }
             
-            // Store selection
+            // Store only responds to B key for closing now (items are clicked)
             if (showStore) {
-                // Construction supplies (Q, W, E keys)
-                if (e.key === 'q' || e.key === 'Q') {
-                    purchaseSupply('hammer');
-                } else if (e.key === 'w' || e.key === 'W') {
-                    purchaseSupply('nails');
-                } else if (e.key === 'e' || e.key === 'E') {
-                    purchaseSupply('wood');
-                }
-                
-                // Weapons (number keys) - now shows all weapons but only allows purchasing unlocked ones
-                const allWeapons = Object.keys(weapons);
-                const keyIndex = parseInt(e.key) - 1;
-                if (keyIndex >= 0 && keyIndex < allWeapons.length) {
-                    const weaponKey = allWeapons[keyIndex];
-                    const weapon = weapons[weaponKey];
-                    if (playerLevel >= weapon.unlockLevel && playerCurrency >= weapon.price && weaponKey !== currentWeapon) {
-                        playerCurrency -= weapon.price;
-                        currentWeapon = weaponKey;
-                        player.damage = weapon.damage;
-                        player.attackRate = weapon.fireRate;
-                        showStore = false;
-                    } else if (playerLevel < weapon.unlockLevel) {
-                        console.log(`Weapon ${weapon.name} is locked until level ${weapon.unlockLevel}`);
-                    }
-                }
                 if (e.key === 'b' || e.key === 'B') {
                     toggleStore();
                 }
@@ -3524,22 +3518,42 @@ const canvas = document.getElementById('gameCanvas');
                 return; // Don't process other mouse events during upgrade menu
             }
             
-            // Handle store clicks
+            // Handle store clicks - updated for side window
             if (showStore) {
                 const rect = canvas.getBoundingClientRect();
                 const clickX = e.clientX - rect.left;
                 const clickY = e.clientY - rect.top;
                 
-                const storeWidth = 900;
-                const storeHeight = Math.min(canvas.height - 40, 800);
-                const storeX = (canvas.width - storeWidth) / 2;
-                const storeY = (canvas.height - storeHeight) / 2;
-                const weaponStartY = storeY + 120;
-                const weaponHeight = 70;
+                // Use same dimensions as side window store
+                const storeWidth = Math.min(400, canvas.width * 0.4);
+                const storeHeight = canvas.height - 40;
+                const storeX = canvas.width - storeWidth - 20;
+                const storeY = 20;
                 
-                const availableWeapons = Object.keys(weapons).filter(key => playerLevel >= weapons[key].unlockLevel);
+                // Construction supplies click detection
+                let suppliesY = storeY + 80;
+                const supplyKeys = Object.keys(constructionSupplies);
                 
-                // Group weapons by category for click detection
+                for (let i = 0; i < supplyKeys.length; i++) {
+                    const supply = constructionSupplies[supplyKeys[i]];
+                    const canAfford = playerCurrency >= supply.price;
+                    
+                    if (clickX >= storeX + 10 && clickX <= storeX + storeWidth - 20 &&
+                        clickY >= suppliesY - 3 && clickY <= suppliesY + 25) {
+                        if (canAfford) {
+                            purchaseSupply(supplyKeys[i]);
+                        }
+                        return;
+                    }
+                    suppliesY += 28;
+                }
+                
+                // Weapons section
+                const weaponStartY = suppliesY + 10;
+                const weaponHeight = 35;
+                
+                // Group all weapons by category for click detection
+                const availableWeapons = Object.keys(weapons);
                 const weaponCategories = {};
                 availableWeapons.forEach(key => {
                     const weapon = weapons[key];
@@ -3552,39 +3566,43 @@ const canvas = document.getElementById('gameCanvas');
                 let currentY = weaponStartY - storeScrollY; // Apply scroll offset
                 let clicked = false;
                 
-                Object.keys(weaponCategories).forEach(category => {
-                    currentY += 20; // Match display spacing
+                // Check if click is in the scrollable weapons area
+                if (clickX >= storeX && clickX <= storeX + storeWidth &&
+                    clickY >= storeY + 70 && clickY <= storeY + storeHeight - 30) {
                     
-                    weaponCategories[category].forEach((weapon, i) => {
-                        const weaponY = currentY;
+                    Object.keys(weaponCategories).forEach(category => {
+                        // Skip category header
+                        currentY += 15;
                         
-                        if (!clicked && clickX >= storeX + 20 && clickX <= storeX + storeWidth - 20 &&
-                            clickY >= weaponY - 5 && clickY <= weaponY + weaponHeight - 5) {
-                            // Check if it's a weapon or upgrade
-                            if (weapons[weapon.key]) {
-                                // It's a weapon - handle weapon purchase
+                        weaponCategories[category].forEach((weapon, i) => {
+                            const weaponY = currentY;
+                            
+                            // Check if click is on this weapon
+                            if (!clicked && clickX >= storeX + 10 && clickX <= storeX + storeWidth - 10 &&
+                                clickY >= weaponY - 3 && clickY <= weaponY + weaponHeight - 3) {
+                                
                                 const weaponObj = weapons[weapon.key];
                                 const adjustedPrice = getAdjustedWeaponPrice(weapon.key);
-                                if (playerCurrency >= adjustedPrice && weapon.key !== currentWeapon && playerLevel >= weaponObj.unlockLevel) {
+                                const isUnlocked = playerLevel >= weaponObj.unlockLevel;
+                                const canAfford = playerCurrency >= adjustedPrice;
+                                const isNotCurrent = weapon.key !== currentWeapon;
+                                
+                                if (isUnlocked && canAfford && isNotCurrent) {
                                     playerCurrency -= adjustedPrice;
                                     currentWeapon = weapon.key;
                                     player.damage = weaponObj.damage;
                                     player.attackRate = weaponObj.fireRate;
-                                    showStore = false;
                                 }
-                            } else {
-                                // It's an upgrade
-                                purchaseUpgrade(weapon.key);
+                                clicked = true;
+                                return;
                             }
-                            clicked = true;
-                            return;
-                        }
+                            
+                            currentY += weaponHeight + 2; // Match display spacing
+                        });
                         
-                        currentY += weaponHeight + 3; // Match display spacing
+                        currentY += 3; // Match category spacing
                     });
-                    
-                    currentY += 5; // Match display spacing
-                });
+                }
                 return; // Don't process other mouse events during store
             }
             
@@ -3638,4 +3656,5 @@ const canvas = document.getElementById('gameCanvas');
         // Initialize game but don't start automatically
         loadHighScores(); // Load high scores on page load
         // Game will start when user clicks "Start Game" from the start menu
+
 
