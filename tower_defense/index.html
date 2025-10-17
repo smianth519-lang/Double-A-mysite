@@ -9,73 +9,165 @@
 <body>
     <div id="gameContainer">
         <div id="gameHeader">
-            <h1>Tower Defense Master</h1>
             <div id="gameStats">
                 <div class="stat">
-                    <span class="label">Health:</span>
-                    <span id="health">100</span>
+                    <span class="label">❤️ Lives</span>
+                    <span class="value" id="livesDisplay">20</span>
                 </div>
                 <div class="stat">
-                    <span class="label">Money:</span>
-                    <span id="money">500</span>
+                    <span class="label">💰 Resources</span>
+                    <span class="value" id="goldDisplay">100</span>
                 </div>
                 <div class="stat">
-                    <span class="label">Wave:</span>
-                    <span id="wave">1</span>
+                    <span class="label">⚔️ Wave</span>
+                    <span class="value" id="waveDisplay">1</span>
                 </div>
                 <div class="stat">
-                    <span class="label">Score:</span>
-                    <span id="score">0</span>
+                    <span class="label">🎯 Score</span>
+                    <span class="value" id="scoreDisplay">0</span>
                 </div>
             </div>
-            <button id="startWaveBtn" class="btn">Start Wave</button>
+            <h1>Tower Defense Master</h1>
         </div>
         
         <div id="gameArea">
-            <canvas id="gameCanvas" width="1000" height="600"></canvas>
+            <div id="gameCanvasContainer">
+                <canvas id="gameCanvas" width="1000" height="600"></canvas>
+                
+                <div id="battleControlPanel">
+                    <div class="battle-control-header">
+                        <span class="battle-control-title">🎮 BATTLE COMMAND CENTER</span>
+                    </div>
+                    <div class="battle-control-grid">
+                        <div class="battle-control-group">
+                            <span class="battle-label">⏸️ MISSION CONTROL</span>
+                            <button id="pauseBtn" class="battle-btn">⏸️ Pause Battle</button>
+                        </div>
+                        <div class="battle-control-group">
+                            <span class="battle-label">⚡ BATTLE TEMPO</span>
+                            <button id="speedBtn" class="battle-btn">⚡ Speed: 1x</button>
+                        </div>
+                        <div class="battle-control-group">
+                            <span class="battle-label">🌊 WAVE CONTROL</span>
+                            <button id="startWaveBtn" class="battle-btn">🚀 Start Wave</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
             <div id="towerShop">
-                <h3>Tower Shop</h3>
-                <div class="tower-item" data-tower="basic">
-                    <div class="tower-icon basic-tower"></div>
-                    <div class="tower-info">
-                        <div class="tower-name">Basic Tower</div>
-                        <div class="tower-cost">$125</div>
-                        <div class="tower-stats">Damage: 20, Range: 80</div>
+                <h3>🏗️ TURRET DEPLOYMENT</h3>
+                <div class="tower-section">
+                    <div class="tower-item" data-tower="basic">
+                        <div class="tower-icon basic-tower">MG</div>
+                        <div class="tower-info">
+                            <div class="tower-name">Machine Gun Turret</div>
+                            <div class="tower-cost">$125</div>
+                            <div class="tower-stats">⚡ DMG: 20 | 🎯 RNG: 80 | 🔥 RAPID FIRE</div>
+                        </div>
+                    </div>
+                    <div class="tower-item" data-tower="cannon">
+                        <div class="tower-icon cannon-tower">HWZ</div>
+                        <div class="tower-info">
+                            <div class="tower-name">Howitzer Cannon</div>
+                            <div class="tower-cost">$250</div>
+                            <div class="tower-stats">💥 DMG: 50 | 🎯 RNG: 70 | 💣 EXPLOSIVE</div>
+                        </div>
+                    </div>
+                    <div class="tower-item" data-tower="laser">
+                        <div class="tower-icon laser-tower">PLM</div>
+                        <div class="tower-info">
+                            <div class="tower-name">Plasma Cannon</div>
+                            <div class="tower-cost">$400</div>
+                            <div class="tower-stats">⚡ DMG: 35 | 🎯 RNG: 100 | ⚡ ENERGY</div>
+                        </div>
+                    </div>
+                    <div class="tower-item" data-tower="ice">
+                        <div class="tower-icon ice-tower">CRY</div>
+                        <div class="tower-info">
+                            <div class="tower-name">Cryo Launcher</div>
+                            <div class="tower-cost">$175</div>
+                            <div class="tower-stats">❄️ DMG: 15 | 🐌 SLOW: 50% | 🧊 FREEZE</div>
+                        </div>
                     </div>
                 </div>
-                <div class="tower-item" data-tower="cannon">
-                    <div class="tower-icon cannon-tower"></div>
-                    <div class="tower-info">
-                        <div class="tower-name">Cannon Tower</div>
-                        <div class="tower-cost">$250</div>
-                        <div class="tower-stats">Damage: 50, Range: 70</div>
+            </div>
+            
+            <div class="tactical-info">
+                <div class="tactical-header">
+                    <span class="tactical-title">🎯 TACTICAL STATUS</span>
+                </div>
+                <div class="tactical-stats">
+                    <div class="tactical-item">
+                        <span class="tactical-label">🔫 Deployed:</span>
+                        <span class="tactical-value" id="deployedCount">0</span>
+                    </div>
+                    <div class="tactical-item">
+                        <span class="tactical-label">💀 Eliminated:</span>
+                        <span class="tactical-value" id="eliminatedCount">0</span>
+                    </div>
+                    <div class="tactical-item">
+                        <span class="tactical-label">⚡ Efficiency:</span>
+                        <span class="tactical-value" id="efficiency">100%</span>
                     </div>
                 </div>
-                <div class="tower-item" data-tower="laser">
-                    <div class="tower-icon laser-tower"></div>
-                    <div class="tower-info">
-                        <div class="tower-name">Laser Tower</div>
-                        <div class="tower-cost">$400</div>
-                        <div class="tower-stats">Damage: 35, Range: 100</div>
+                <div class="mission-briefing">
+                    <div class="briefing-title">📋 MISSION BRIEF</div>
+                    <div class="briefing-text" id="missionText">
+                        Defend the base from incoming enemy forces. Deploy turrets strategically along the path to maximize effectiveness.
                     </div>
                 </div>
-                <div class="tower-item" data-tower="ice">
-                    <div class="tower-icon ice-tower"></div>
-                    <div class="tower-info">
-                        <div class="tower-name">Ice Tower</div>
-                        <div class="tower-cost">$175</div>
-                        <div class="tower-stats">Damage: 15, Slow: 50%</div>
+                
+                <div class="tower-control-section">
+                    <div class="control-header">
+                        <span class="control-title">🔧 TOWER OPERATIONS</span>
+                    </div>
+                    <div class="tower-control-buttons">
+                        <button id="sellTowerBtn" class="tower-btn danger" disabled>💰 Sell Tower</button>
+                        <button id="upgradeTowerBtn" class="tower-btn success" disabled>⬆️ Upgrade Tower</button>
+                    </div>
+                    <div class="control-status" id="towerControlStatus">
+                        <span class="status-text">Select a deployed turret to manage</span>
                     </div>
                 </div>
+                
+                <div class="command-instructions">
+                    <div class="instruction-title">🎯 TACTICAL OPERATIONS</div>
+                    <div class="instruction-list">
+                        <div class="instruction-item">🖱️ Click turrets above to select and deploy</div>
+                        <div class="instruction-item">🎯 Click deployed turrets to upgrade/sell</div>
+                        <div class="instruction-item">⚡ Use battle controls below map</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Help Overlay - temporarily hidden for debugging -->
+        <div id="mobileHelpOverlay" class="mobile-help-overlay hidden" style="display: none !important;">
+            <div class="mobile-help-content">
+                <h3>📱 Mobile Controls</h3>
+                <div class="mobile-help-item">
+                    <span class="help-icon">👆</span>
+                    <span class="help-text">Tap turrets above to select</span>
+                </div>
+                <div class="mobile-help-item">
+                    <span class="help-icon">🎯</span>
+                    <span class="help-text">Tap map to place turret</span>
+                </div>
+                <div class="mobile-help-item">
+                    <span class="help-icon">🔧</span>
+                    <span class="help-text">Tap placed turrets to upgrade</span>
+                </div>
+                <div class="mobile-help-item">
+                    <span class="help-icon">👆💎</span>
+                    <span class="help-text">Long press to cancel</span>
+                </div>
+                <button id="closeMobileHelp" class="btn-small">Got it!</button>
             </div>
         </div>
         
         <div id="gameControls">
-            <button id="pauseBtn" class="btn">Pause</button>
-            <button id="speedBtn" class="btn">Speed: 1x</button>
-            <button id="sellTowerBtn" class="btn" disabled>Sell Tower</button>
-            <button id="upgradeTowerBtn" class="btn" disabled>Upgrade Tower</button>
+            <!-- Game controls moved to tower shop panel -->
         </div>
         
         <div id="gameMessage" class="hidden">
@@ -249,4 +341,5 @@
     <script src="ui.js"></script>
 </body>
 </html>
+
 
