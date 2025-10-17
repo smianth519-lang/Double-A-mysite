@@ -1,4 +1,3 @@
-// UI.js - User interface management and interactions
 class UIManager {
     constructor() {
         this.selectedTowerType = null;
@@ -10,10 +9,10 @@ class UIManager {
         
         // UI Elements
         this.elements = {
-            health: document.getElementById('health'),
-            money: document.getElementById('money'),
-            wave: document.getElementById('wave'),
-            score: document.getElementById('score'),
+            health: document.getElementById('livesDisplay'),
+            money: document.getElementById('goldDisplay'),
+            wave: document.getElementById('waveDisplay'),
+            score: document.getElementById('scoreDisplay'),
             startWaveBtn: document.getElementById('startWaveBtn'),
             pauseBtn: document.getElementById('pauseBtn'),
             speedBtn: document.getElementById('speedBtn'),
@@ -35,42 +34,56 @@ class UIManager {
             backToStartMenuBtn: document.getElementById('backToStartMenuBtn')
         };
         
+        // Mobile detection and setup
+        this.isMobile = this.detectMobile();
+        
         // Initialize event listeners
         this.initializeEventListeners();
         
-        console.log('UI Manager initialized');
+        // Mobile help temporarily disabled for debugging
+        console.log('Mobile device detected:', this.isMobile);
+        // if (this.isMobile) {
+        //     this.showMobileHelpOnFirstVisit();
+        // }
+        
+        console.log('UI Manager initialized', this.isMobile ? '(Mobile)' : '(Desktop)');
     }
     
     initializeEventListeners() {
         // Tower shop interactions
         document.querySelectorAll('.tower-item').forEach(item => {
-            item.addEventListener('mouseenter', (e) => this.showTowerTooltip(e, item.dataset.tower));
-            item.addEventListener('mouseleave', () => this.hideTooltip());
-            item.addEventListener('click', () => this.selectTowerType(item.dataset.tower));
+            // Desktop hover events
+            if (!this.isMobile) {
+                item.addEventListener('mouseenter', (e) => this.showTowerTooltip(e, item.dataset.tower));
+                item.addEventListener('mouseleave', () => this.hideTooltip());
+            }
+            
+            // Mobile and desktop click events
+            this.addMobileClickHandler(item, () => this.selectTowerType(item.dataset.tower));
         });
         
-        // Game controls
-        this.elements.startWaveBtn.addEventListener('click', () => this.startNextWave());
-        this.elements.pauseBtn.addEventListener('click', () => this.togglePause());
-        this.elements.speedBtn.addEventListener('click', () => this.changeGameSpeed());
-        this.elements.sellTowerBtn.addEventListener('click', () => this.sellSelectedTower());
-        this.elements.upgradeTowerBtn.addEventListener('click', () => this.upgradeSelectedTower());
-        this.elements.restartBtn.addEventListener('click', () => this.restartGame());
+        // Game controls - Add both click and touch events for mobile
+        this.addMobileClickHandler(this.elements.startWaveBtn, () => this.startNextWave());
+        this.addMobileClickHandler(this.elements.pauseBtn, () => this.togglePause());
+        this.addMobileClickHandler(this.elements.speedBtn, () => this.changeGameSpeed());
+        this.addMobileClickHandler(this.elements.sellTowerBtn, () => this.sellSelectedTower());
+        this.addMobileClickHandler(this.elements.upgradeTowerBtn, () => this.upgradeSelectedTower());
+        this.addMobileClickHandler(this.elements.restartBtn, () => this.restartGame());
         
-        // Pause menu controls
-        this.elements.resumeGameBtn.addEventListener('click', () => this.togglePause());
-        this.elements.pauseRestartBtn.addEventListener('click', () => this.restartGame());
-        this.elements.backToGamesBtn.addEventListener('click', () => this.backToGames());
-        this.elements.exitToMenuBtn.addEventListener('click', () => this.exitToMainMenu());
+        // Pause menu controls - Add both click and touch events for mobile
+        this.addMobileClickHandler(this.elements.resumeGameBtn, () => this.togglePause());
+        this.addMobileClickHandler(this.elements.pauseRestartBtn, () => this.restartGame());
+        this.addMobileClickHandler(this.elements.backToGamesBtn, () => this.backToGames());
+        this.addMobileClickHandler(this.elements.exitToMenuBtn, () => this.exitToMainMenu());
         
-        // Start menu controls
-        this.elements.startGameBtn.addEventListener('click', () => this.startGame());
-        this.elements.instructionsBtn.addEventListener('click', () => this.showInstructions());
-        this.elements.backToGamesFromStartBtn.addEventListener('click', () => this.backToGames());
+        // Start menu controls - Add both click and touch events for mobile
+        this.addMobileClickHandler(this.elements.startGameBtn, () => this.startGame());
+        this.addMobileClickHandler(this.elements.instructionsBtn, () => this.showInstructions());
+        this.addMobileClickHandler(this.elements.backToGamesFromStartBtn, () => this.backToGames());
         
-        // Instructions menu controls
-        this.elements.startFromInstructionsBtn.addEventListener('click', () => this.startGame());
-        this.elements.backToStartMenuBtn.addEventListener('click', () => this.showStartMenu());
+        // Instructions menu controls - Add both click and touch events for mobile
+        this.addMobileClickHandler(this.elements.startFromInstructionsBtn, () => this.startGame());
+        this.addMobileClickHandler(this.elements.backToStartMenuBtn, () => this.showStartMenu());
         
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => this.handleKeyboard(e));
@@ -78,6 +91,20 @@ class UIManager {
         // Canvas interactions (handled in game.js but we can add UI feedback here)
         if (window.game && window.game.canvas) {
             window.game.canvas.addEventListener('mousemove', (e) => this.handleCanvasMouseMove(e));
+        }
+        
+        // Mobile help overlay
+        const closeMobileHelpBtn = document.getElementById('closeMobileHelp');
+        if (closeMobileHelpBtn) {
+            this.addMobileClickHandler(closeMobileHelpBtn, () => {
+                document.getElementById('mobileHelpOverlay').classList.add('hidden');
+                localStorage.setItem('towerDefense_mobileHelpSeen', 'true');
+            });
+        }
+        
+        // Apply mobile optimizations if needed
+        if (this.isMobile) {
+            setTimeout(() => this.optimizeForMobile(), 100);
         }
     }
     
@@ -569,7 +596,14 @@ class UIManager {
     }
     
     startGame() {
-        if (!window.game) return;
+        console.log('🎮 startGame() called');
+        if (!window.game) {
+            console.log('❌ No game object found!');
+            return;
+        }
+        
+        console.log('✅ Game object exists, current state:', window.game.gameState);
+        console.log('🔄 Hiding menus and starting game');
         
         // Hide all menus
         this.hideStartMenu();
@@ -666,6 +700,115 @@ class UIManager {
         });
         
         ctx.restore();
+    }
+    
+    // Mobile-specific methods
+    detectMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+               window.innerWidth <= 768 ||
+               ('ontouchstart' in window);
+    }
+    
+    addMobileClickHandler(element, callback) {
+        if (!element) return;
+        
+        // For mobile devices, use touch events, for desktop use click
+        if (this.isMobile || 'ontouchstart' in window) {
+            let touchStarted = false;
+            
+            element.addEventListener('touchstart', (e) => {
+                touchStarted = true;
+            }, { passive: true });
+            
+            element.addEventListener('touchend', (e) => {
+                if (touchStarted) {
+                    touchStarted = false;
+                    e.preventDefault();
+                    callback();
+                }
+            }, { passive: false });
+            
+            element.addEventListener('touchcancel', () => {
+                touchStarted = false;
+            }, { passive: true });
+            
+            // Also add click as fallback
+            element.addEventListener('click', (e) => {
+                e.preventDefault();
+                callback();
+            });
+        } else {
+            // Desktop: just use click
+            element.addEventListener('click', callback);
+        }
+    }
+    
+    showMobileHelpOnFirstVisit() {
+        const hasSeenHelp = localStorage.getItem('towerDefense_mobileHelpSeen');
+        if (!hasSeenHelp) {
+            setTimeout(() => {
+                this.showMobileHelp();
+            }, 1000);
+        }
+    }
+    
+    showMobileHelp() {
+        const overlay = document.getElementById('mobileHelpOverlay');
+        const closeBtn = document.getElementById('closeMobileHelp');
+        
+        if (overlay) {
+            overlay.classList.remove('hidden');
+            
+            if (closeBtn) {
+                // Use the mobile click handler for consistency
+                this.addMobileClickHandler(closeBtn, () => {
+                    overlay.classList.add('hidden');
+                    localStorage.setItem('towerDefense_mobileHelpSeen', 'true');
+                });
+            }
+            
+            // Also allow clicking/tapping the overlay background to close
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.classList.add('hidden');
+                    localStorage.setItem('towerDefense_mobileHelpSeen', 'true');
+                }
+            });
+            
+            // Auto-hide after 15 seconds (increased time)
+            setTimeout(() => {
+                if (!overlay.classList.contains('hidden')) {
+                    overlay.classList.add('hidden');
+                    localStorage.setItem('towerDefense_mobileHelpSeen', 'true');
+                }
+            }, 15000);
+        }
+    }
+    
+    optimizeForMobile() {
+        if (!this.isMobile) return;
+        
+        // Add mobile-specific optimizations
+        const canvas = document.getElementById('gameCanvas');
+        if (canvas) {
+            // Prevent context menu on long press
+            canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+            
+            // Optimize touch response
+            canvas.style.touchAction = 'none';
+        }
+        
+        // Adjust UI for mobile
+        const gameHeader = document.getElementById('gameHeader');
+        if (gameHeader && window.innerWidth <= 480) {
+            gameHeader.style.padding = '8px';
+        }
+        
+        // Make buttons more touch-friendly
+        document.querySelectorAll('.battle-btn, .tower-btn, .btn').forEach(btn => {
+            btn.style.minHeight = '44px';
+            btn.style.minWidth = '44px';
+        });
     }
 }
 
