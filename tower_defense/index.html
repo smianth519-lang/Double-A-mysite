@@ -85,6 +85,159 @@
                 <button id="restartBtn" class="btn">Restart Game</button>
             </div>
         </div>
+        
+        <div id="pauseMenu" class="hidden">
+            <div id="pauseMenuContent">
+                <h2>Game Paused</h2>
+                <div id="pauseMenuStats">
+                    <div class="pause-stat">
+                        <span class="label">Wave:</span>
+                        <span id="pauseWave">1</span>
+                    </div>
+                    <div class="pause-stat">
+                        <span class="label">Score:</span>
+                        <span id="pauseScore">0</span>
+                    </div>
+                    <div class="pause-stat">
+                        <span class="label">Money:</span>
+                        <span id="pauseMoney">750</span>
+                    </div>
+                </div>
+                <div id="pauseMenuButtons">
+                    <button id="resumeGameBtn" class="btn">Resume Game</button>
+                    <button id="pauseRestartBtn" class="btn danger">Restart Game</button>
+                    <button id="backToGamesBtn" class="btn">Back to Games</button>
+                    <button id="exitToMenuBtn" class="btn">Exit to Menu</button>
+                </div>
+                <div id="pauseMenuTips">
+                    <h3>Tips:</h3>
+                    <ul>
+                        <li>Place towers away from the path</li>
+                        <li>Upgrade towers for better damage</li>
+                        <li>Ice towers slow down enemies</li>
+                        <li>Use keyboard shortcuts: Space (pause), 1-4 (towers)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div id="startMenu">
+            <div id="startMenuContent">
+                <div id="gameTitle">
+                    <h1>Tower Defense Master</h1>
+                    <p class="subtitle">Defend Your Base Against Endless Waves</p>
+                </div>
+                
+                <div id="startMenuButtons">
+                    <button id="startGameBtn" class="btn primary">Start Game</button>
+                    <button id="instructionsBtn" class="btn">How to Play</button>
+                    <button id="backToGamesFromStartBtn" class="btn">Back to Games</button>
+                </div>
+                
+                <div id="gamePreview">
+                    <div class="preview-stats">
+                        <div class="preview-stat">
+                            <span class="stat-number">20</span>
+                            <span class="stat-label">Waves</span>
+                        </div>
+                        <div class="preview-stat">
+                            <span class="stat-number">4</span>
+                            <span class="stat-label">Tower Types</span>
+                        </div>
+                        <div class="preview-stat">
+                            <span class="stat-number">∞</span>
+                            <span class="stat-label">Strategy</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="instructionsMenu" class="hidden">
+            <div id="instructionsContent">
+                <h2>How to Play</h2>
+                <div id="instructionsText">
+                    <div class="instruction-section">
+                        <h3>🎯 Objective</h3>
+                        <p>Defend your base by preventing enemies from reaching the end of the path. Use towers to destroy enemies before they can damage your health.</p>
+                    </div>
+                    
+                    <div class="instruction-section">
+                        <h3>🏗️ Tower Types</h3>
+                        <div class="tower-types">
+                            <div class="tower-type">
+                                <div class="tower-icon-small basic-tower">B</div>
+                                <div class="tower-desc">
+                                    <strong>Basic Tower ($125)</strong><br>
+                                    Balanced damage and range
+                                </div>
+                            </div>
+                            <div class="tower-type">
+                                <div class="tower-icon-small cannon-tower">C</div>
+                                <div class="tower-desc">
+                                    <strong>Cannon Tower ($250)</strong><br>
+                                    High damage, shorter range
+                                </div>
+                            </div>
+                            <div class="tower-type">
+                                <div class="tower-icon-small laser-tower">L</div>
+                                <div class="tower-desc">
+                                    <strong>Laser Tower ($400)</strong><br>
+                                    Fast firing, long range
+                                </div>
+                            </div>
+                            <div class="tower-type">
+                                <div class="tower-icon-small ice-tower">I</div>
+                                <div class="tower-desc">
+                                    <strong>Ice Tower ($175)</strong><br>
+                                    Slows enemies down
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="instruction-section">
+                        <h3>⌨️ Controls</h3>
+                        <div class="controls-grid">
+                            <div class="control-item">
+                                <kbd>Space</kbd> <span>Pause/Resume</span>
+                            </div>
+                            <div class="control-item">
+                                <kbd>1-4</kbd> <span>Select Tower Types</span>
+                            </div>
+                            <div class="control-item">
+                                <kbd>S</kbd> <span>Sell Selected Tower</span>
+                            </div>
+                            <div class="control-item">
+                                <kbd>U</kbd> <span>Upgrade Selected Tower</span>
+                            </div>
+                            <div class="control-item">
+                                <kbd>Enter</kbd> <span>Start Next Wave</span>
+                            </div>
+                            <div class="control-item">
+                                <kbd>ESC</kbd> <span>Cancel/Close Menu</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="instruction-section">
+                        <h3>💡 Tips</h3>
+                        <ul>
+                            <li>Start with Basic towers early in the game</li>
+                            <li>Upgrade towers instead of building too many</li>
+                            <li>Use Ice towers to slow down fast enemies</li>
+                            <li>Place towers at corners for maximum coverage</li>
+                            <li>Manage your money - don't spend everything at once</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div id="instructionsButtons">
+                    <button id="startFromInstructionsBtn" class="btn primary">Start Game</button>
+                    <button id="backToStartMenuBtn" class="btn">Back to Menu</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Game Scripts -->
