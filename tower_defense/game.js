@@ -1,4 +1,3 @@
-// Game.js - Main game engine and core systems
 class TowerDefenseGame {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
@@ -36,6 +35,9 @@ class TowerDefenseGame {
         this.initializeEventListeners();
         this.gameLoop = this.gameLoop.bind(this);
         
+        // Setup responsive canvas for mobile
+        this.setupResponsiveCanvas();
+        
         console.log('Tower Defense Game initialized!');
     }
     
@@ -68,13 +70,29 @@ class TowerDefenseGame {
             this.cancelTowerPlacement();
         });
         
+        // Touch events for mobile
+        this.canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
+        this.canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
+        this.canvas.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: false });
+        
         // Tower shop events
         document.querySelectorAll('.tower-item').forEach(item => {
             item.addEventListener('click', () => this.selectTowerType(item.dataset.tower));
+            item.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.selectTowerType(item.dataset.tower);
+            });
         });
         
         // Control buttons (UI manager will handle these)
         // Removed duplicate event listeners - UI manager handles all button interactions
+        
+        // Prevent zoom on double tap
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        });
     }
     
     handleMouseMove(e) {
@@ -117,6 +135,101 @@ class TowerDefenseGame {
         } else {
             this.selectTowerAtPosition(clickX, clickY);
         }
+    }
+    
+    // Touch event handlers for mobile support
+    handleTouchStart(e) {
+        e.preventDefault();
+        if (e.touches.length === 1) {
+            const touch = e.touches[0];
+            this.handleTouchMove(e); // Update position
+            this.lastTouchTime = Date.now();
+        }
+    }
+    
+    handleTouchMove(e) {
+        e.preventDefault();
+        if (e.touches.length === 1) {
+            const touch = e.touches[0];
+            const rect = this.canvas.getBoundingClientRect();
+            
+            // Account for canvas scaling
+            const scaleX = this.canvas.width / rect.width;
+            const scaleY = this.canvas.height / rect.height;
+            
+            this.mouseX = (touch.clientX - rect.left) * scaleX;
+            this.mouseY = (touch.clientY - rect.top) * scaleY;
+            
+            // Find hovered tower for tooltip
+            this.hoveredTower = null;
+            for (const tower of this.towers) {
+                const distance = Math.sqrt(
+                    Math.pow(this.mouseX - tower.x, 2) + 
+                    Math.pow(this.mouseY - tower.y, 2)
+                );
+                if (distance <= 30) {
+                    this.hoveredTower = tower;
+                    break;
+                }
+            }
+        }
+    }
+    
+    handleTouchEnd(e) {
+        e.preventDefault();
+        if (this.gameState !== 'playing') return;
+        
+        const touchDuration = Date.now() - (this.lastTouchTime || 0);
+        
+        // Only trigger on short taps (not drags)
+        if (touchDuration < 300) {
+            if (this.isPlacingTower && this.selectedTowerType) {
+                this.placeTower(this.mouseX, this.mouseY);
+            } else {
+                this.selectTowerAtPosition(this.mouseX, this.mouseY);
+            }
+        }
+        
+        // Handle long press for tower deselection (similar to right-click)
+        if (touchDuration > 500) {
+            this.cancelTowerPlacement();
+        }
+    }
+    
+    setupResponsiveCanvas() {
+        // Set up responsive canvas behavior
+        const resizeCanvas = () => {
+            const container = document.getElementById('gameCanvasContainer');
+            if (!container) return;
+            
+            const containerRect = container.getBoundingClientRect();
+            const aspectRatio = 1000 / 600; // Original canvas aspect ratio
+            
+            if (window.innerWidth <= 768) {
+                // Mobile: make canvas fit container width
+                const maxWidth = Math.min(containerRect.width - 20, window.innerWidth - 20);
+                const newHeight = maxWidth / aspectRatio;
+                
+                this.canvas.style.width = maxWidth + 'px';
+                this.canvas.style.height = newHeight + 'px';
+                this.canvas.style.maxWidth = '100%';
+            } else {
+                // Desktop: use fixed size
+                this.canvas.style.width = '1000px';
+                this.canvas.style.height = '600px';
+            }
+        };
+        
+        // Initial resize
+        resizeCanvas();
+        
+        // Resize on window resize
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Resize on orientation change (mobile)
+        window.addEventListener('orientationchange', () => {
+            setTimeout(resizeCanvas, 100);
+        });
     }
     
     selectTowerType(towerType) {
@@ -514,16 +627,348 @@ class TowerDefenseGame {
     }
     
     drawBackground() {
-        // Draw grass texture
-        this.ctx.fillStyle = '#2c5234';
+        // Base terrain gradient
+        const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+        gradient.addColorStop(0, '#4a5d3a');    // Darker forest green at top
+        gradient.addColorStop(0.3, '#3d4f2f');  // Medium green
+        gradient.addColorStop(0.7, '#2c3e22');  // Darker terrain
+        gradient.addColorStop(1, '#1a2515');    // Very dark at bottom
+        
+        this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // Add some texture
-        this.ctx.fillStyle = 'rgba(34, 139, 34, 0.1)';
-        for (let i = 0; i < 50; i++) {
+        // Draw battlefield decorations
+        this.drawMountains();
+        this.drawTrees();
+        this.drawRocks();
+        this.drawBunkers();
+        this.drawCraters();
+        this.drawGrass();
+        this.drawClouds();
+        this.drawWarAmbience();
+    }
+    
+    drawMountains() {
+        // Distant mountains silhouette
+        this.ctx.fillStyle = 'rgba(60, 80, 50, 0.6)';
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, 120);
+        
+        // Create mountain peaks
+        for (let i = 0; i <= this.canvas.width; i += 60) {
+            const peakHeight = 80 + Math.sin(i * 0.01) * 30;
+            this.ctx.lineTo(i + 30, peakHeight);
+            this.ctx.lineTo(i + 60, 120);
+        }
+        
+        this.ctx.lineTo(this.canvas.width, 120);
+        this.ctx.lineTo(this.canvas.width, 0);
+        this.ctx.lineTo(0, 0);
+        this.ctx.closePath();
+        this.ctx.fill();
+    }
+    
+    drawTrees() {
+        // Scattered trees around the battlefield
+        const treePositions = [
+            {x: 80, y: 200, size: 1.2},
+            {x: 200, y: 100, size: 0.8},
+            {x: 320, y: 180, size: 1.0},
+            {x: 500, y: 120, size: 1.5},
+            {x: 720, y: 160, size: 0.9},
+            {x: 850, y: 90, size: 1.1},
+            {x: 950, y: 200, size: 1.3},
+            {x: 50, y: 400, size: 0.7},
+            {x: 300, y: 450, size: 1.0},
+            {x: 600, y: 480, size: 0.8},
+            {x: 900, y: 420, size: 1.2}
+        ];
+        
+        treePositions.forEach(tree => {
+            this.drawSingleTree(tree.x, tree.y, tree.size);
+        });
+    }
+    
+    drawSingleTree(x, y, scale = 1) {
+        const baseSize = 20 * scale;
+        
+        // Tree trunk
+        this.ctx.fillStyle = '#4a3c28';
+        this.ctx.fillRect(x - 3 * scale, y, 6 * scale, 25 * scale);
+        
+        // Tree foliage (multiple layers for depth)
+        this.ctx.fillStyle = '#1a4a1a';
+        this.ctx.beginPath();
+        this.ctx.arc(x, y - 5 * scale, baseSize, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        this.ctx.fillStyle = '#2d5a2d';
+        this.ctx.beginPath();
+        this.ctx.arc(x - 5 * scale, y - 8 * scale, baseSize * 0.8, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        this.ctx.fillStyle = '#0f2f0f';
+        this.ctx.beginPath();
+        this.ctx.arc(x + 5 * scale, y - 8 * scale, baseSize * 0.7, 0, Math.PI * 2);
+        this.ctx.fill();
+    }
+    
+    drawRocks() {
+        // Scattered rocks and boulders
+        const rockPositions = [
+            {x: 150, y: 300, size: 1.0},
+            {x: 400, y: 250, size: 1.5},
+            {x: 600, y: 350, size: 0.8},
+            {x: 750, y: 300, size: 1.2},
+            {x: 100, y: 500, size: 0.9},
+            {x: 550, y: 520, size: 1.1},
+            {x: 800, y: 480, size: 0.7}
+        ];
+        
+        rockPositions.forEach(rock => {
+            this.drawSingleRock(rock.x, rock.y, rock.size);
+        });
+    }
+    
+    drawSingleRock(x, y, scale = 1) {
+        // Rock shadow
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        this.ctx.beginPath();
+        this.ctx.ellipse(x + 2, y + 15 * scale, 12 * scale, 6 * scale, 0, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // Main rock
+        this.ctx.fillStyle = '#666666';
+        this.ctx.beginPath();
+        this.ctx.ellipse(x, y, 10 * scale, 12 * scale, 0, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // Rock highlight
+        this.ctx.fillStyle = '#888888';
+        this.ctx.beginPath();
+        this.ctx.ellipse(x - 3 * scale, y - 4 * scale, 4 * scale, 5 * scale, 0, 0, Math.PI * 2);
+        this.ctx.fill();
+    }
+    
+    drawBunkers() {
+        // Military bunkers/fortifications
+        const bunkerPositions = [
+            {x: 120, y: 350, type: 'small'},
+            {x: 450, y: 400, type: 'large'},
+            {x: 780, y: 380, type: 'small'},
+            {x: 250, y: 150, type: 'small'}
+        ];
+        
+        bunkerPositions.forEach(bunker => {
+            this.drawSingleBunker(bunker.x, bunker.y, bunker.type);
+        });
+    }
+    
+    drawSingleBunker(x, y, type = 'small') {
+        const size = type === 'large' ? 1.5 : 1.0;
+        
+        // Bunker shadow
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        this.ctx.fillRect(x + 2, y + 2, 30 * size, 20 * size);
+        
+        // Main bunker structure
+        this.ctx.fillStyle = '#555555';
+        this.ctx.fillRect(x, y, 30 * size, 20 * size);
+        
+        // Bunker entrance
+        this.ctx.fillStyle = '#333333';
+        this.ctx.fillRect(x + 5 * size, y + 5 * size, 8 * size, 10 * size);
+        
+        // Camouflage netting
+        this.ctx.strokeStyle = 'rgba(100, 120, 80, 0.6)';
+        this.ctx.lineWidth = 2;
+        for (let i = 0; i < 5; i++) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(x + i * 6 * size, y - 2);
+            this.ctx.lineTo(x + (i + 1) * 6 * size, y + 5);
+            this.ctx.stroke();
+        }
+        
+        // Sandbags
+        this.ctx.fillStyle = '#8B7355';
+        for (let i = 0; i < 3; i++) {
+            this.ctx.beginPath();
+            this.ctx.arc(x - 5 + i * 8, y + 18 * size, 4, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+    }
+    
+    drawCraters() {
+        // Battle damage craters
+        const craterPositions = [
+            {x: 180, y: 280, size: 0.8},
+            {x: 350, y: 320, size: 1.2},
+            {x: 650, y: 280, size: 1.0},
+            {x: 820, y: 320, size: 0.9},
+            {x: 480, y: 180, size: 0.6}
+        ];
+        
+        craterPositions.forEach(crater => {
+            this.drawSingleCrater(crater.x, crater.y, crater.size);
+        });
+    }
+    
+    drawSingleCrater(x, y, scale = 1) {
+        // Crater rim (raised earth)
+        this.ctx.fillStyle = '#4a3c28';
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, 18 * scale, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // Crater depression
+        this.ctx.fillStyle = '#2a1f15';
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, 12 * scale, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // Crater center (deep)
+        this.ctx.fillStyle = '#1a120a';
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, 6 * scale, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // Scattered debris
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2;
+            const distance = 15 + Math.random() * 10;
+            const debrisX = x + Math.cos(angle) * distance * scale;
+            const debrisY = y + Math.sin(angle) * distance * scale;
+            
+            this.ctx.fillStyle = '#666666';
+            this.ctx.fillRect(debrisX, debrisY, 2 * scale, 2 * scale);
+        }
+    }
+    
+    drawGrass() {
+        // Grass patches and vegetation
+        this.ctx.fillStyle = 'rgba(34, 139, 34, 0.3)';
+        
+        // Random grass patches
+        for (let i = 0; i < 200; i++) {
             const x = Math.random() * this.canvas.width;
             const y = Math.random() * this.canvas.height;
-            this.ctx.fillRect(x, y, 2, 2);
+            const size = Math.random() * 3 + 1;
+            
+            // Avoid drawing grass on the path
+            let onPath = false;
+            for (let j = 0; j < this.path.length - 1; j++) {
+                const pathX = this.path[j].x;
+                const pathY = this.path[j].y;
+                const distance = Math.sqrt((x - pathX) ** 2 + (y - pathY) ** 2);
+                if (distance < 20) {
+                    onPath = true;
+                    break;
+                }
+            }
+            
+            if (!onPath) {
+                this.ctx.fillRect(x, y, size, size);
+            }
+        }
+        
+        // Grass tufts
+        this.ctx.strokeStyle = 'rgba(50, 150, 50, 0.4)';
+        this.ctx.lineWidth = 1;
+        for (let i = 0; i < 100; i++) {
+            const x = Math.random() * this.canvas.width;
+            const y = Math.random() * this.canvas.height;
+            
+            // Check if not on path
+            let onPath = false;
+            for (let j = 0; j < this.path.length - 1; j++) {
+                const pathX = this.path[j].x;
+                const pathY = this.path[j].y;
+                const distance = Math.sqrt((x - pathX) ** 2 + (y - pathY) ** 2);
+                if (distance < 25) {
+                    onPath = true;
+                    break;
+                }
+            }
+            
+            if (!onPath) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y);
+                this.ctx.lineTo(x + Math.random() * 4 - 2, y - Math.random() * 6 - 2);
+                this.ctx.stroke();
+            }
+        }
+    }
+    
+    drawClouds() {
+        // Sky clouds for atmosphere
+        const clouds = [
+            {x: 100, y: 40, size: 1.0},
+            {x: 300, y: 20, size: 1.5},
+            {x: 600, y: 35, size: 0.8},
+            {x: 850, y: 15, size: 1.2}
+        ];
+        
+        clouds.forEach(cloud => {
+            this.drawSingleCloud(cloud.x, cloud.y, cloud.size);
+        });
+    }
+    
+    drawSingleCloud(x, y, scale = 1) {
+        this.ctx.fillStyle = 'rgba(220, 220, 220, 0.4)';
+        
+        // Cloud puffs
+        const puffs = [
+            {offsetX: 0, offsetY: 0, size: 15},
+            {offsetX: 20, offsetY: -5, size: 20},
+            {offsetX: 40, offsetY: 0, size: 18},
+            {offsetX: 60, offsetY: -3, size: 15},
+            {offsetX: 15, offsetY: 8, size: 12},
+            {offsetX: 35, offsetY: 10, size: 14}
+        ];
+        
+        puffs.forEach(puff => {
+            this.ctx.beginPath();
+            this.ctx.arc(
+                x + puff.offsetX * scale, 
+                y + puff.offsetY * scale, 
+                puff.size * scale, 
+                0, 
+                Math.PI * 2
+            );
+            this.ctx.fill();
+        });
+    }
+    
+    drawWarAmbience() {
+        // Add subtle war atmosphere effects
+        
+        // Distant smoke columns
+        this.ctx.fillStyle = 'rgba(100, 100, 100, 0.2)';
+        for (let i = 0; i < 3; i++) {
+            const x = 200 + i * 300;
+            const smokeHeight = 80 + Math.sin(Date.now() * 0.001 + i) * 10;
+            
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, smokeHeight);
+            this.ctx.quadraticCurveTo(x + 15, smokeHeight - 30, x + 10, smokeHeight - 60);
+            this.ctx.quadraticCurveTo(x - 10, smokeHeight - 90, x + 5, 0);
+            this.ctx.lineTo(x - 5, 0);
+            this.ctx.quadraticCurveTo(x - 15, smokeHeight - 90, x - 5, smokeHeight - 60);
+            this.ctx.quadraticCurveTo(x - 10, smokeHeight - 30, x - 10, smokeHeight);
+            this.ctx.closePath();
+            this.ctx.fill();
+        }
+        
+        // Atmospheric particles (dust, debris)
+        this.ctx.fillStyle = 'rgba(139, 128, 109, 0.15)';
+        for (let i = 0; i < 30; i++) {
+            const x = Math.random() * this.canvas.width;
+            const y = Math.random() * this.canvas.height * 0.7; // Upper portion of screen
+            const size = Math.random() * 2 + 0.5;
+            
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, size, 0, Math.PI * 2);
+            this.ctx.fill();
         }
     }
     
@@ -610,6 +1055,7 @@ class TowerDefenseGame {
     }
     
     start() {
+        this.gameState = 'menu'; // Start in menu state
         this.updateUI();
         requestAnimationFrame(this.gameLoop);
         
@@ -733,4 +1179,5 @@ document.addEventListener('DOMContentLoaded', () => {
         game.start();
     }, 100);
 });
+
 
