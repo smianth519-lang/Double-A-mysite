@@ -1,4 +1,3 @@
-// Projectiles.js - Projectile classes and ballistics
 class Projectile {
     constructor(startX, startY, targetX, targetY, type = 'bullet', damage = 20, speed = 300, options = {}) {
         this.x = startX;
