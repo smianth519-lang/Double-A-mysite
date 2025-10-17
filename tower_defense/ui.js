@@ -20,7 +20,19 @@ class UIManager {
             sellTowerBtn: document.getElementById('sellTowerBtn'),
             upgradeTowerBtn: document.getElementById('upgradeTowerBtn'),
             restartBtn: document.getElementById('restartBtn'),
-            gameMessage: document.getElementById('gameMessage')
+            gameMessage: document.getElementById('gameMessage'),
+            pauseMenu: document.getElementById('pauseMenu'),
+            resumeGameBtn: document.getElementById('resumeGameBtn'),
+            pauseRestartBtn: document.getElementById('pauseRestartBtn'),
+            backToGamesBtn: document.getElementById('backToGamesBtn'),
+            exitToMenuBtn: document.getElementById('exitToMenuBtn'),
+            startMenu: document.getElementById('startMenu'),
+            startGameBtn: document.getElementById('startGameBtn'),
+            instructionsBtn: document.getElementById('instructionsBtn'),
+            backToGamesFromStartBtn: document.getElementById('backToGamesFromStartBtn'),
+            instructionsMenu: document.getElementById('instructionsMenu'),
+            startFromInstructionsBtn: document.getElementById('startFromInstructionsBtn'),
+            backToStartMenuBtn: document.getElementById('backToStartMenuBtn')
         };
         
         // Initialize event listeners
@@ -45,6 +57,21 @@ class UIManager {
         this.elements.upgradeTowerBtn.addEventListener('click', () => this.upgradeSelectedTower());
         this.elements.restartBtn.addEventListener('click', () => this.restartGame());
         
+        // Pause menu controls
+        this.elements.resumeGameBtn.addEventListener('click', () => this.togglePause());
+        this.elements.pauseRestartBtn.addEventListener('click', () => this.restartGame());
+        this.elements.backToGamesBtn.addEventListener('click', () => this.backToGames());
+        this.elements.exitToMenuBtn.addEventListener('click', () => this.exitToMainMenu());
+        
+        // Start menu controls
+        this.elements.startGameBtn.addEventListener('click', () => this.startGame());
+        this.elements.instructionsBtn.addEventListener('click', () => this.showInstructions());
+        this.elements.backToGamesFromStartBtn.addEventListener('click', () => this.backToGames());
+        
+        // Instructions menu controls
+        this.elements.startFromInstructionsBtn.addEventListener('click', () => this.startGame());
+        this.elements.backToStartMenuBtn.addEventListener('click', () => this.showStartMenu());
+        
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => this.handleKeyboard(e));
         
@@ -63,7 +90,10 @@ class UIManager {
                 this.togglePause();
                 break;
             case 'escape':
-                if (window.game.isPlacingTower) {
+                if (window.game.gameState === 'paused') {
+                    e.preventDefault();
+                    this.togglePause();
+                } else if (window.game.isPlacingTower) {
                     window.game.cancelTowerPlacement();
                     this.updateTowerShop();
                 }
@@ -126,7 +156,7 @@ class UIManager {
     selectTowerType(towerType) {
         if (!window.game) return;
         
-        const towerCosts = { basic: 50, cannon: 100, laser: 150, ice: 80 };
+        const towerCosts = { basic: 125, cannon: 250, laser: 400, ice: 175 };
         const cost = towerCosts[towerType];
         
         if (window.game.playerMoney >= cost) {
@@ -162,14 +192,27 @@ class UIManager {
     
     togglePause() {
         if (!window.game) return;
-        window.game.togglePause();
-        this.updatePauseButton();
+        
+        if (window.game.gameState === 'playing') {
+            window.game.gameState = 'paused';
+            this.elements.pauseBtn.textContent = 'Resume';
+            this.showPauseMenu();
+        } else if (window.game.gameState === 'paused') {
+            window.game.gameState = 'playing';
+            this.elements.pauseBtn.textContent = 'Pause';
+            this.hidePauseMenu();
+        }
+        
+        console.log('Game paused state:', window.game.gameState);
     }
     
     changeGameSpeed() {
         if (!window.game) return;
-        window.game.changeGameSpeed();
-        this.updateSpeedButton();
+        
+        const speeds = [1, 2, 4];
+        const currentIndex = speeds.indexOf(window.game.gameSpeed);
+        window.game.gameSpeed = speeds[(currentIndex + 1) % speeds.length];
+        this.elements.speedBtn.textContent = `Speed: ${window.game.gameSpeed}x`;
     }
     
     sellSelectedTower() {
@@ -201,6 +244,10 @@ class UIManager {
     
     restartGame() {
         if (!window.game) return;
+        
+        // Hide pause menu if showing
+        this.hidePauseMenu();
+        this.hideGameMessage();
         
         window.game.restartGame();
         this.updateAllUI();
@@ -237,7 +284,7 @@ class UIManager {
     updateTowerShop() {
         if (!window.game) return;
         
-        const towerCosts = { basic: 50, cannon: 100, laser: 150, ice: 80 };
+        const towerCosts = { basic: 125, cannon: 250, laser: 400, ice: 175 };
         
         document.querySelectorAll('.tower-item').forEach(item => {
             const towerType = item.dataset.tower;
@@ -467,6 +514,94 @@ class UIManager {
     
     hideGameMessage() {
         this.elements.gameMessage.classList.add('hidden');
+    }
+    
+    showPauseMenu() {
+        if (!window.game) return;
+        
+        // Update pause menu stats
+        document.getElementById('pauseWave').textContent = window.game.currentWave;
+        document.getElementById('pauseScore').textContent = window.game.score;
+        document.getElementById('pauseMoney').textContent = window.game.playerMoney;
+        
+        // Show pause menu
+        this.elements.pauseMenu.classList.remove('hidden');
+    }
+    
+    hidePauseMenu() {
+        this.elements.pauseMenu.classList.add('hidden');
+    }
+    
+    exitToMainMenu() {
+        // For now, just restart the game since we don't have a main menu
+        // In a full implementation, this would navigate back to a main menu screen
+        this.showGameMessage(
+            'Exit to Main Menu',
+            'This would normally take you to the main menu. For now, restart the game.',
+            true
+        );
+        this.hidePauseMenu();
+    }
+    
+    backToGames() {
+        // Navigate back to the games.html page
+        window.location.href = '../games.html';
+    }
+    
+    showStartMenu() {
+        this.elements.startMenu.classList.remove('hidden');
+        this.elements.instructionsMenu.classList.add('hidden');
+        this.elements.pauseMenu.classList.add('hidden');
+        this.elements.gameMessage.classList.add('hidden');
+    }
+    
+    hideStartMenu() {
+        this.elements.startMenu.classList.add('hidden');
+    }
+    
+    showInstructions() {
+        this.elements.instructionsMenu.classList.remove('hidden');
+        this.elements.startMenu.classList.add('hidden');
+    }
+    
+    hideInstructions() {
+        this.elements.instructionsMenu.classList.add('hidden');
+    }
+    
+    startGame() {
+        if (!window.game) return;
+        
+        // Hide all menus
+        this.hideStartMenu();
+        this.hideInstructions();
+        this.hidePauseMenu();
+        this.hideGameMessage();
+        
+        // Reset and start the game
+        if (window.game.gameState === 'menu') {
+            window.game.gameState = 'playing';
+            window.game.playerHealth = 100;
+            window.game.playerMoney = 750;
+            window.game.currentWave = 1;
+            window.game.score = 0;
+            window.game.gameSpeed = 1;
+            
+            window.game.enemies = [];
+            window.game.towers = [];
+            window.game.projectiles = [];
+            window.game.particles = [];
+            
+            window.game.selectedTower = null;
+            window.game.selectedTowerType = null;
+            window.game.isPlacingTower = false;
+            
+            if (window.waveManager) {
+                window.waveManager.reset();
+            }
+            
+            this.updateAllUI();
+            this.showNotification('Game Started! Place towers to defend your base.', 'info');
+        }
     }
     
     renderWaveAnnouncement(ctx, announcement) {
