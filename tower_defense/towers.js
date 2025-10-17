@@ -1,4 +1,3 @@
-// Towers.js - Tower classes and shooting mechanics
 class Tower {
     constructor(x, y, type = 'basic') {
         this.x = x;
@@ -361,125 +360,435 @@ class Tower {
         const baseSize = 25;
         
         // Base shadow
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
         ctx.beginPath();
-        ctx.arc(2, 2, baseSize, 0, Math.PI * 2);
+        ctx.arc(3, 3, baseSize + 2, 0, Math.PI * 2);
         ctx.fill();
         
-        // Base
-        const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, baseSize);
+        // Concrete foundation
+        ctx.fillStyle = '#666666';
+        ctx.beginPath();
+        ctx.arc(0, 0, baseSize + 3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Main turret base (octagonal for military look)
+        ctx.fillStyle = this.darkenColor(this.color, 0.2);
+        ctx.beginPath();
+        for (let i = 0; i < 8; i++) {
+            const angle = (i * Math.PI * 2) / 8;
+            const x = Math.cos(angle) * baseSize;
+            const y = Math.sin(angle) * baseSize;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        
+        // Armored plating gradient
+        const gradient = ctx.createRadialGradient(-5, -5, 0, 0, 0, baseSize);
         gradient.addColorStop(0, this.color);
-        gradient.addColorStop(1, this.darkenColor(this.color, 0.3));
+        gradient.addColorStop(0.7, this.darkenColor(this.color, 0.1));
+        gradient.addColorStop(1, this.darkenColor(this.color, 0.4));
         
         ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.arc(0, 0, baseSize, 0, Math.PI * 2);
+        ctx.arc(0, 0, baseSize - 2, 0, Math.PI * 2);
         ctx.fill();
         
-        // Base outline (gets thicker with upgrades)
-        ctx.strokeStyle = this.darkenColor(this.color, 0.5);
+        // Rivets and details
+        ctx.fillStyle = this.darkenColor(this.color, 0.6);
+        for (let i = 0; i < 6; i++) {
+            const angle = (i * Math.PI * 2) / 6;
+            const x = Math.cos(angle) * (baseSize - 8);
+            const y = Math.sin(angle) * (baseSize - 8);
+            ctx.beginPath();
+            ctx.arc(x, y, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Central hub
+        ctx.fillStyle = this.darkenColor(this.color, 0.3);
+        ctx.beginPath();
+        ctx.arc(0, 0, 8, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Hub highlight
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(-2, -2, 5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Armor plating outline
+        ctx.strokeStyle = this.darkenColor(this.color, 0.7);
         ctx.lineWidth = 2 + (this.level - 1) * 0.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, baseSize - 2, 0, Math.PI * 2);
         ctx.stroke();
+        
+        // Upgrade indicators on base
+        for (let i = 0; i < this.level && i < 5; i++) {
+            const angle = (i * Math.PI * 2) / 5;
+            const x = Math.cos(angle) * (baseSize - 5);
+            const y = Math.sin(angle) * (baseSize - 5);
+            
+            ctx.fillStyle = '#ffd700';
+            ctx.strokeStyle = '#b8860b';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        }
         
         // Upgrade glow effect for higher level towers
         if (this.level >= 3) {
             ctx.save();
             ctx.shadowColor = this.color;
-            ctx.shadowBlur = 10 + (this.level * 2);
-            ctx.globalAlpha = 0.3;
+            ctx.shadowBlur = 15 + (this.level * 3);
+            ctx.globalAlpha = 0.4;
+            ctx.strokeStyle = this.color;
+            ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.arc(0, 0, baseSize + 5, 0, Math.PI * 2);
-            ctx.fillStyle = this.color;
-            ctx.fill();
+            ctx.stroke();
             ctx.restore();
         }
     }
     
     renderTurret(ctx) {
-        const turretLength = 30;
-        const turretWidth = 12;
-        
-        switch (this.type) {
-            case 'basic':
-                // Simple barrel
-                ctx.fillStyle = this.color;
-                ctx.fillRect(0, -turretWidth / 2, turretLength, turretWidth);
-                
-                // Barrel end
-                ctx.beginPath();
-                ctx.arc(turretLength, 0, turretWidth / 2, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-                
-            case 'cannon':
-                // Thick cannon barrel
-                const cannonWidth = 18;
-                ctx.fillStyle = this.color;
-                ctx.fillRect(0, -cannonWidth / 2, turretLength, cannonWidth);
-                
-                // Muzzle
-                ctx.fillStyle = this.darkenColor(this.color, 0.3);
-                ctx.fillRect(turretLength - 5, -cannonWidth / 2 + 2, 8, cannonWidth - 4);
-                
-                // Shoot animation
-                if (this.shootAnimation > 0) {
-                    ctx.fillStyle = '#ffaa00';
-                    ctx.beginPath();
-                    ctx.arc(turretLength + 10, 0, 8, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-                break;
-                
-            case 'laser':
-                // Futuristic laser cannon
-                ctx.fillStyle = this.color;
-                
-                // Main body
-                ctx.fillRect(0, -turretWidth / 2, turretLength - 5, turretWidth);
-                
-                // Laser crystal
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(turretLength - 8, -4, 8, 8);
-                
-                // Energy glow
-                if (this.shootAnimation > 0) {
-                    ctx.fillStyle = '#ff00ff';
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = '#ff00ff';
-                    ctx.fillRect(turretLength - 6, -2, 12, 4);
-                    ctx.shadowBlur = 0;
-                }
-                break;
-                
-            case 'ice':
-                // Ice crystal tower
-                ctx.fillStyle = this.color;
-                
-                // Crystal shape
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(turretLength, -8);
-                ctx.lineTo(turretLength + 8, 0);
-                ctx.lineTo(turretLength, 8);
-                ctx.closePath();
-                ctx.fill();
-                
-                // Ice particles
-                if (this.shootAnimation > 0) {
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                    for (let i = 0; i < 5; i++) {
-                        const px = turretLength + Math.random() * 15;
-                        const py = (Math.random() - 0.5) * 10;
-                        ctx.fillRect(px, py, 2, 2);
-                    }
-                }
-                break;
-        }
+        const turretLength = 45; // Increased from 30 for better visibility
+        const turretWidth = 18;  // Increased from 12 for better visibility
         
         // Recoil animation
         if (this.shootAnimation > 0) {
-            const recoil = (this.shootAnimation / 200) * 5;
+            const recoil = (this.shootAnimation / 200) * 8; // Increased recoil effect
             ctx.translate(-recoil, 0);
+        }
+        
+        switch (this.type) {
+            case 'basic':
+                this.renderBasicTurret(ctx, turretLength, turretWidth);
+                break;
+            case 'cannon':
+                this.renderCannonTurret(ctx, turretLength, turretWidth);
+                break;
+            case 'laser':
+                this.renderLaserTurret(ctx, turretLength, turretWidth);
+                break;
+            case 'ice':
+                this.renderIceTurret(ctx, turretLength, turretWidth);
+                break;
+        }
+    }
+    
+    renderBasicTurret(ctx, turretLength, turretWidth) {
+        // Add glow effect for better visibility
+        ctx.shadowColor = this.brightenColor(this.color, 0.4);
+        ctx.shadowBlur = 10;
+        
+        // Turret mount (larger and more visible)
+        ctx.fillStyle = this.darkenColor(this.color, 0.2);
+        ctx.strokeStyle = this.brightenColor(this.color, 0.3);
+        ctx.lineWidth = 2;
+        ctx.fillRect(-12, -12, 24, 24);
+        ctx.strokeRect(-12, -12, 24, 24);
+        
+        // Reset shadow for main elements
+        ctx.shadowBlur = 0;
+        
+        // Main barrel assembly with gradient
+        const barrelGradient = ctx.createLinearGradient(0, -turretWidth/2, 0, turretWidth/2);
+        barrelGradient.addColorStop(0, this.brightenColor(this.color, 0.2));
+        barrelGradient.addColorStop(0.5, this.color);
+        barrelGradient.addColorStop(1, this.darkenColor(this.color, 0.2));
+        
+        ctx.fillStyle = barrelGradient;
+        ctx.strokeStyle = this.darkenColor(this.color, 0.4);
+        ctx.lineWidth = 2;
+        ctx.fillRect(0, -turretWidth / 2, turretLength, turretWidth);
+        ctx.strokeRect(0, -turretWidth / 2, turretLength, turretWidth);
+        
+        // Barrel reinforcement rings (more prominent)
+        ctx.fillStyle = this.darkenColor(this.color, 0.3);
+        ctx.strokeStyle = this.brightenColor(this.color, 0.2);
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 4; i++) {
+            const x = 6 + i * 8;
+            ctx.fillRect(x, -turretWidth / 2 - 2, 3, turretWidth + 4);
+            ctx.strokeRect(x, -turretWidth / 2 - 2, 3, turretWidth + 4);
+        }
+        
+        // Muzzle brake (more detailed)
+        ctx.fillStyle = this.darkenColor(this.color, 0.4);
+        ctx.strokeStyle = '#ffaa00';
+        ctx.lineWidth = 2;
+        ctx.fillRect(turretLength - 4, -turretWidth / 2 - 3, 8, turretWidth + 6);
+        ctx.strokeRect(turretLength - 4, -turretWidth / 2 - 3, 8, turretWidth + 6);
+        
+        // Barrel tip with bright interior
+        ctx.fillStyle = '#222222';
+        ctx.strokeStyle = '#ffaa00';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(turretLength, 0, turretWidth / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Inner barrel glow
+        ctx.fillStyle = '#ff6600';
+        ctx.beginPath();
+        ctx.arc(turretLength, 0, turretWidth / 2 - 3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Muzzle flash
+        if (this.shootAnimation > 0) {
+            ctx.fillStyle = '#ffff00';
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#ff6600';
+            ctx.beginPath();
+            ctx.arc(turretLength + 8, 0, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+        
+        // Sight system
+        ctx.strokeStyle = this.darkenColor(this.color, 0.6);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(5, -turretWidth / 2 - 3);
+        ctx.lineTo(15, -turretWidth / 2 - 5);
+        ctx.stroke();
+    }
+    
+    renderCannonTurret(ctx, turretLength, turretWidth) {
+        const cannonWidth = 18;
+        
+        // Heavy turret mount
+        ctx.fillStyle = this.darkenColor(this.color, 0.3);
+        ctx.fillRect(-12, -12, 24, 24);
+        
+        // Hydraulic supports
+        ctx.fillStyle = '#555555';
+        ctx.fillRect(-10, -6, 15, 4);
+        ctx.fillRect(-10, 2, 15, 4);
+        
+        // Main cannon barrel
+        ctx.fillStyle = this.color;
+        ctx.fillRect(0, -cannonWidth / 2, turretLength, cannonWidth);
+        
+        // Breach assembly
+        ctx.fillStyle = this.darkenColor(this.color, 0.2);
+        ctx.fillRect(-8, -cannonWidth / 2 - 2, 12, cannonWidth + 4);
+        
+        // Barrel bands (structural reinforcement)
+        ctx.fillStyle = '#444444';
+        for (let i = 0; i < 4; i++) {
+            const x = 5 + i * 6;
+            ctx.fillRect(x, -cannonWidth / 2 - 3, 3, cannonWidth + 6);
+        }
+        
+        // Muzzle compensator
+        ctx.fillStyle = this.darkenColor(this.color, 0.5);
+        ctx.fillRect(turretLength - 8, -cannonWidth / 2 - 4, 12, cannonWidth + 8);
+        
+        // Bore
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(turretLength, 0, cannonWidth / 2 - 3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Muzzle blast
+        if (this.shootAnimation > 0) {
+            const blastIntensity = this.shootAnimation / 200;
+            ctx.fillStyle = `rgba(255, 170, 0, ${blastIntensity})`;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#ff6600';
+            ctx.beginPath();
+            ctx.arc(turretLength + 15, 0, 12 * blastIntensity, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            
+            // Smoke puffs
+            ctx.fillStyle = 'rgba(100, 100, 100, 0.6)';
+            for (let i = 0; i < 3; i++) {
+                const smokeX = turretLength + 10 + i * 8;
+                const smokeY = (Math.random() - 0.5) * 10;
+                ctx.beginPath();
+                ctx.arc(smokeX, smokeY, 4 + i * 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // Range finder
+        ctx.fillStyle = '#666666';
+        ctx.fillRect(8, -cannonWidth / 2 - 8, 4, 6);
+    }
+    
+    renderLaserTurret(ctx, turretLength, turretWidth) {
+        // Advanced turret mount with tech details
+        ctx.fillStyle = this.darkenColor(this.color, 0.2);
+        ctx.fillRect(-10, -10, 20, 20);
+        
+        // Tech panels
+        ctx.fillStyle = '#444444';
+        ctx.fillRect(-8, -8, 6, 16);
+        ctx.fillStyle = '#666666';
+        ctx.fillRect(-7, -6, 4, 3);
+        ctx.fillRect(-7, -1, 4, 3);
+        ctx.fillRect(-7, 4, 4, 3);
+        
+        // Main laser housing
+        ctx.fillStyle = this.color;
+        ctx.fillRect(0, -turretWidth / 2, turretLength - 5, turretWidth);
+        
+        // Cooling vents
+        ctx.fillStyle = this.darkenColor(this.color, 0.4);
+        for (let i = 0; i < 5; i++) {
+            const x = 5 + i * 4;
+            ctx.fillRect(x, -turretWidth / 2 - 1, 1, turretWidth + 2);
+        }
+        
+        // Energy conduits
+        ctx.strokeStyle = '#00ffff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, -turretWidth / 2 + 2);
+        ctx.lineTo(turretLength - 8, -turretWidth / 2 + 2);
+        ctx.moveTo(0, turretWidth / 2 - 2);
+        ctx.lineTo(turretLength - 8, turretWidth / 2 - 2);
+        ctx.stroke();
+        
+        // Laser crystal chamber
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(turretLength - 10, -6, 10, 12);
+        
+        // Crystal
+        ctx.fillStyle = '#00ffff';
+        ctx.fillRect(turretLength - 8, -4, 6, 8);
+        
+        // Focusing lens
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.beginPath();
+        ctx.arc(turretLength - 2, 0, 3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Laser beam and energy effects
+        if (this.shootAnimation > 0) {
+            const beamIntensity = this.shootAnimation / 200;
+            
+            // Main laser beam
+            ctx.strokeStyle = `rgba(255, 0, 255, ${beamIntensity})`;
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#ff00ff';
+            ctx.beginPath();
+            ctx.moveTo(turretLength - 2, 0);
+            ctx.lineTo(turretLength + 50, 0);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            
+            // Energy buildup
+            ctx.fillStyle = `rgba(255, 255, 255, ${beamIntensity})`;
+            ctx.beginPath();
+            ctx.arc(turretLength - 2, 0, 8 * beamIntensity, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Targeting system
+        ctx.fillStyle = '#ff0000';
+        ctx.beginPath();
+        ctx.arc(10, -turretWidth / 2 - 4, 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    renderIceTurret(ctx, turretLength, turretWidth) {
+        // Crystalline base mount
+        ctx.fillStyle = this.darkenColor(this.color, 0.3);
+        
+        // Hexagonal crystal base
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+            const angle = (i * Math.PI * 2) / 6;
+            const x = Math.cos(angle) * 10;
+            const y = Math.sin(angle) * 10;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        
+        // Main crystal launcher
+        ctx.fillStyle = this.color;
+        
+        // Crystal formation shape
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(turretLength - 5, -10);
+        ctx.lineTo(turretLength + 5, -5);
+        ctx.lineTo(turretLength + 8, 0);
+        ctx.lineTo(turretLength + 5, 5);
+        ctx.lineTo(turretLength - 5, 10);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Ice crystal details
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.fillRect(5, -3, turretLength - 10, 2);
+        ctx.fillRect(5, 1, turretLength - 10, 2);
+        
+        // Frost accumulation
+        ctx.fillStyle = 'rgba(200, 230, 255, 0.8)';
+        for (let i = 0; i < 8; i++) {
+            const x = 8 + Math.random() * (turretLength - 16);
+            const y = (Math.random() - 0.5) * 8;
+            const size = Math.random() * 2 + 1;
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Ice projectile chamber
+        ctx.fillStyle = 'rgba(100, 200, 255, 0.4)';
+        ctx.fillRect(turretLength - 8, -4, 8, 8);
+        
+        // Ice particles and effects
+        if (this.shootAnimation > 0) {
+            const iceIntensity = this.shootAnimation / 200;
+            
+            // Ice cloud
+            ctx.fillStyle = `rgba(200, 230, 255, ${iceIntensity * 0.8})`;
+            ctx.beginPath();
+            ctx.arc(turretLength + 10, 0, 12 * iceIntensity, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Ice shards
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            for (let i = 0; i < 8; i++) {
+                const shardX = turretLength + 8 + Math.random() * 20;
+                const shardY = (Math.random() - 0.5) * 16;
+                const angle = Math.random() * Math.PI * 2;
+                
+                ctx.save();
+                ctx.translate(shardX, shardY);
+                ctx.rotate(angle);
+                ctx.fillRect(-1, -3, 2, 6);
+                ctx.restore();
+            }
+        }
+        
+        // Freezing coils
+        ctx.strokeStyle = 'rgba(100, 200, 255, 0.8)';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 3; i++) {
+            const spiralRadius = 3 + i;
+            ctx.beginPath();
+            for (let a = 0; a < Math.PI * 4; a += 0.1) {
+                const x = 8 + (a / (Math.PI * 4)) * (turretLength - 16);
+                const y = Math.sin(a * 2) * spiralRadius;
+                if (a === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
         }
     }
     
@@ -550,6 +859,16 @@ class Tower {
         const r = Math.max(0, Math.floor((num >> 16) * (1 - amount)));
         const g = Math.max(0, Math.floor(((num >> 8) & 0x00FF) * (1 - amount)));
         const b = Math.max(0, Math.floor((num & 0x0000FF) * (1 - amount)));
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+    
+    brightenColor(color, amount) {
+        // Simple color brightening - converts hex to brighter hex
+        const hex = color.replace('#', '');
+        const num = parseInt(hex, 16);
+        const r = Math.min(255, Math.floor((num >> 16) + (255 - (num >> 16)) * amount));
+        const g = Math.min(255, Math.floor(((num >> 8) & 0x00FF) + (255 - ((num >> 8) & 0x00FF)) * amount));
+        const b = Math.min(255, Math.floor((num & 0x0000FF) + (255 - (num & 0x0000FF)) * amount));
         return `rgb(${r}, ${g}, ${b})`;
     }
 }
