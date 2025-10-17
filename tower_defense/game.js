@@ -733,3 +733,4 @@ document.addEventListener('DOMContentLoaded', () => {
         game.start();
     }, 100);
 });
+
