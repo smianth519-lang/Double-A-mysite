@@ -1,4 +1,3 @@
-// Waves.js - Enemy wave spawning and progression system
 class WaveManager {
     constructor() {
         this.currentWaveNumber = 0;
@@ -519,3 +518,4 @@ document.addEventListener('DOMContentLoaded', () => {
     window.waveManager = waveManager;
     console.log('Wave Manager ready');
 });
+
