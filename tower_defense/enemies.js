@@ -1,4 +1,3 @@
-// Enemies.js - Enemy classes and behavior
 class Enemy {
     constructor(x, y, type = 'basic', waveLevel = 1) {
         this.x = x;
@@ -365,157 +364,566 @@ class Enemy {
     }
     
     renderEnemyShape(ctx) {
-        const animOffset = Math.sin(this.animationFrame / 200) * 2;
+        const animOffset = Math.sin(this.animationFrame / 200) * 1;
+        const walkCycle = Math.sin(this.animationFrame / 100) * 0.5;
         
         switch (this.type) {
             case 'basic':
-                ctx.beginPath();
-                ctx.arc(0, animOffset, this.size, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Eyes
-                ctx.fillStyle = 'white';
-                ctx.beginPath();
-                ctx.arc(-4, animOffset - 3, 2, 0, Math.PI * 2);
-                ctx.arc(4, animOffset - 3, 2, 0, Math.PI * 2);
-                ctx.fill();
+                this.renderBasicSoldier(ctx, animOffset, walkCycle);
                 break;
                 
             case 'fast':
-                // Triangle shape
-                ctx.beginPath();
-                ctx.moveTo(this.size, animOffset);
-                ctx.lineTo(-this.size, animOffset - this.size / 2);
-                ctx.lineTo(-this.size, animOffset + this.size / 2);
-                ctx.closePath();
-                ctx.fill();
-                
-                // Speed lines
-                ctx.strokeStyle = this.color;
-                ctx.lineWidth = 2;
-                for (let i = 0; i < 3; i++) {
-                    ctx.beginPath();
-                    ctx.moveTo(-this.size - 5 - i * 3, animOffset + (i - 1) * 3);
-                    ctx.lineTo(-this.size - 10 - i * 3, animOffset + (i - 1) * 3);
-                    ctx.stroke();
-                }
+                this.renderScoutSoldier(ctx, animOffset, walkCycle);
                 break;
                 
             case 'heavy':
-                // Square shape
-                ctx.fillRect(-this.size, animOffset - this.size, this.size * 2, this.size * 2);
-                
-                // Armor plating
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-                ctx.fillRect(-this.size + 2, animOffset - this.size + 2, this.size * 2 - 4, 4);
-                ctx.fillRect(-this.size + 2, animOffset - 2, this.size * 2 - 4, 4);
-                ctx.fillRect(-this.size + 2, animOffset + this.size - 6, this.size * 2 - 4, 4);
+                this.renderHeavySoldier(ctx, animOffset, walkCycle);
                 break;
                 
             case 'armored':
-                // Pentagon shape
-                ctx.beginPath();
-                for (let i = 0; i < 5; i++) {
-                    const angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
-                    const x = Math.cos(angle) * this.size;
-                    const y = Math.sin(angle) * this.size + animOffset;
-                    if (i === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                }
-                ctx.closePath();
-                ctx.fill();
-                
-                // Armor shine
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-                ctx.beginPath();
-                ctx.arc(-3, animOffset - 3, this.size / 3, 0, Math.PI * 2);
-                ctx.fill();
+                this.renderArmoredSoldier(ctx, animOffset, walkCycle);
                 break;
                 
             case 'flying':
-                // Diamond shape with wings
-                ctx.beginPath();
-                ctx.moveTo(0, animOffset - this.size);
-                ctx.lineTo(this.size, animOffset);
-                ctx.lineTo(0, animOffset + this.size);
-                ctx.lineTo(-this.size, animOffset);
-                ctx.closePath();
-                ctx.fill();
-                
-                // Wings
-                const wingFlap = Math.sin(this.animationFrame / 50) * 0.3 + 0.7;
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-                ctx.beginPath();
-                ctx.ellipse(-this.size, animOffset, this.size * 0.8, this.size * 0.4 * wingFlap, 0, 0, Math.PI * 2);
-                ctx.ellipse(this.size, animOffset, this.size * 0.8, this.size * 0.4 * wingFlap, 0, 0, Math.PI * 2);
-                ctx.fill();
+                this.renderJetpackSoldier(ctx, animOffset, walkCycle);
                 break;
                 
             case 'boss':
-                // Large intimidating shape
-                ctx.beginPath();
-                ctx.arc(0, animOffset, this.size, 0, Math.PI * 2);
-                ctx.fill();
+                this.renderBossSoldier(ctx, animOffset, walkCycle);
+                break;
                 
-                // Spikes
-                ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
-                for (let i = 0; i < 8; i++) {
-                    const angle = (i * Math.PI * 2) / 8;
-                    const spikeLength = this.size * 0.5;
-                    ctx.beginPath();
-                    ctx.moveTo(Math.cos(angle) * this.size, Math.sin(angle) * this.size + animOffset);
-                    ctx.lineTo(Math.cos(angle) * (this.size + spikeLength), Math.sin(angle) * (this.size + spikeLength) + animOffset);
-                    ctx.lineTo(Math.cos(angle + 0.2) * this.size, Math.sin(angle + 0.2) * this.size + animOffset);
-                    ctx.closePath();
-                    ctx.fill();
-                }
+            case 'ultra':
+                this.renderUltraSoldier(ctx, animOffset, walkCycle);
+                break;
                 
-                // Eyes
-                ctx.fillStyle = 'yellow';
-                ctx.beginPath();
-                ctx.arc(-6, animOffset - 5, 3, 0, Math.PI * 2);
-                ctx.arc(6, animOffset - 5, 3, 0, Math.PI * 2);
-                ctx.fill();
+            case 'swarm':
+                this.renderSwarmSoldier(ctx, animOffset, walkCycle);
                 break;
                 
             case 'shielded':
-                // Main hexagonal body
-                ctx.beginPath();
-                const sides = 6;
-                for (let i = 0; i < sides; i++) {
-                    const angle = (i / sides) * Math.PI * 2;
-                    const x = Math.cos(angle) * this.size;
-                    const y = Math.sin(angle) * this.size + animOffset;
-                    if (i === 0) {
-                        ctx.moveTo(x, y);
-                    } else {
-                        ctx.lineTo(x, y);
-                    }
-                }
-                ctx.closePath();
-                ctx.fill();
-                
-                // Shield glow effect (if shield is active)
-                if (this.shield > 0) {
-                    const shieldStrength = this.shield / this.maxShield;
-                    ctx.save();
-                    ctx.shadowColor = '#00ffff';
-                    ctx.shadowBlur = 15 * shieldStrength;
-                    ctx.strokeStyle = `rgba(0, 255, 255, ${0.8 * shieldStrength})`;
-                    ctx.lineWidth = 3;
-                    ctx.beginPath();
-                    ctx.arc(0, animOffset, this.size + 5, 0, Math.PI * 2);
-                    ctx.stroke();
-                    ctx.restore();
-                }
-                
-                // Core
-                ctx.fillStyle = '#004444';
-                ctx.beginPath();
-                ctx.arc(0, animOffset, this.size * 0.4, 0, Math.PI * 2);
-                ctx.fill();
+                this.renderShieldedSoldier(ctx, animOffset, walkCycle);
                 break;
         }
+    }
+    
+    renderBasicSoldier(ctx, animOffset, walkCycle) {
+        // Basic Infantry - Standard soldier
+        
+        // Body (torso)
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-4, animOffset - 8, 8, 12);
+        
+        // Head (helmet)
+        ctx.fillStyle = this.darkenColor(this.color, 0.2);
+        ctx.beginPath();
+        ctx.arc(0, animOffset - 10, 5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Helmet visor
+        ctx.fillStyle = '#333333';
+        ctx.fillRect(-3, animOffset - 12, 6, 3);
+        
+        // Arms
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-8, animOffset - 6, 3, 8);
+        ctx.fillRect(5, animOffset - 6, 3, 8);
+        
+        // Legs (with walking animation)
+        const legOffset = walkCycle * 2;
+        ctx.fillRect(-3, animOffset + 4 + legOffset, 2, 6);
+        ctx.fillRect(1, animOffset + 4 - legOffset, 2, 6);
+        
+        // Weapon (rifle)
+        ctx.fillStyle = '#444444';
+        ctx.fillRect(6, animOffset - 4, 8, 2);
+        
+        // Armor plating
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.fillRect(-3, animOffset - 6, 6, 2);
+        ctx.fillRect(-3, animOffset - 2, 6, 2);
+        
+        // Military insignia
+        ctx.fillStyle = '#ffff00';
+        ctx.fillRect(-1, animOffset - 4, 2, 1);
+    }
+    
+    renderScoutSoldier(ctx, animOffset, walkCycle) {
+        // Scout/Recon - Light, fast soldier
+        
+        // Lean body
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-3, animOffset - 7, 6, 10);
+        
+        // Tactical helmet
+        ctx.fillStyle = this.darkenColor(this.color, 0.2);
+        ctx.beginPath();
+        ctx.arc(0, animOffset - 9, 4, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Night vision goggles
+        ctx.fillStyle = '#00ff00';
+        ctx.beginPath();
+        ctx.arc(-2, animOffset - 10, 1.5, 0, Math.PI * 2);
+        ctx.arc(2, animOffset - 10, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Light armor arms
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-6, animOffset - 5, 2, 6);
+        ctx.fillRect(4, animOffset - 5, 2, 6);
+        
+        // Fast-moving legs
+        const fastLegOffset = walkCycle * 3;
+        ctx.fillRect(-2, animOffset + 3 + fastLegOffset, 1.5, 5);
+        ctx.fillRect(0.5, animOffset + 3 - fastLegOffset, 1.5, 5);
+        
+        // SMG weapon
+        ctx.fillStyle = '#333333';
+        ctx.fillRect(5, animOffset - 3, 6, 1.5);
+        
+        // Speed lines (motion blur)
+        ctx.strokeStyle = 'rgba(68, 255, 68, 0.5)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.moveTo(-8 - i * 2, animOffset + (i - 1) * 2);
+            ctx.lineTo(-12 - i * 2, animOffset + (i - 1) * 2);
+            ctx.stroke();
+        }
+        
+        // Radio antenna
+        ctx.strokeStyle = '#666666';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(2, animOffset - 12);
+        ctx.lineTo(4, animOffset - 16);
+        ctx.stroke();
+    }
+    
+    renderHeavySoldier(ctx, animOffset, walkCycle) {
+        // Heavy Infantry - Bulky, well-armored
+        
+        // Massive torso
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-6, animOffset - 10, 12, 16);
+        
+        // Heavy helmet
+        ctx.fillStyle = this.darkenColor(this.color, 0.3);
+        ctx.fillRect(-6, animOffset - 14, 12, 8);
+        
+        // Visor slit
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(-4, animOffset - 12, 8, 1.5);
+        
+        // Massive armored arms
+        ctx.fillStyle = this.darkenColor(this.color, 0.1);
+        ctx.fillRect(-10, animOffset - 8, 4, 10);
+        ctx.fillRect(6, animOffset - 8, 4, 10);
+        
+        // Heavy legs
+        const slowLegOffset = walkCycle * 1;
+        ctx.fillRect(-4, animOffset + 6 + slowLegOffset, 3, 8);
+        ctx.fillRect(1, animOffset + 6 - slowLegOffset, 3, 8);
+        
+        // Heavy machine gun
+        ctx.fillStyle = '#222222';
+        ctx.fillRect(8, animOffset - 6, 12, 3);
+        ctx.fillRect(18, animOffset - 5, 3, 1); // Barrel tip
+        
+        // Armor plating details
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.fillRect(-5, animOffset - 8, 10, 2);
+        ctx.fillRect(-5, animOffset - 4, 10, 2);
+        ctx.fillRect(-5, animOffset, 10, 2);
+        
+        // Shoulder pads
+        ctx.fillStyle = this.darkenColor(this.color, 0.4);
+        ctx.fillRect(-8, animOffset - 10, 3, 4);
+        ctx.fillRect(5, animOffset - 10, 3, 4);
+        
+        // Ammo belt
+        ctx.fillStyle = '#ffaa00';
+        for (let i = 0; i < 4; i++) {
+            ctx.fillRect(-4 + i * 2, animOffset - 2, 1, 3);
+        }
+    }
+    
+    renderArmoredSoldier(ctx, animOffset, walkCycle) {
+        // Elite Armored - Advanced combat armor
+        
+        // Advanced armor torso
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-5, animOffset - 9, 10, 14);
+        
+        // High-tech helmet
+        ctx.fillStyle = this.darkenColor(this.color, 0.2);
+        ctx.beginPath();
+        ctx.arc(0, animOffset - 11, 6, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // HUD visor
+        ctx.fillStyle = '#0088ff';
+        ctx.fillRect(-4, animOffset - 13, 8, 2);
+        
+        // Power armor arms
+        ctx.fillStyle = this.darkenColor(this.color, 0.1);
+        ctx.fillRect(-9, animOffset - 7, 4, 9);
+        ctx.fillRect(5, animOffset - 7, 4, 9);
+        
+        // Servo-assisted legs
+        ctx.fillRect(-3, animOffset + 5 + walkCycle, 2.5, 7);
+        ctx.fillRect(0.5, animOffset + 5 - walkCycle, 2.5, 7);
+        
+        // Plasma rifle
+        ctx.fillStyle = '#6600cc';
+        ctx.fillRect(7, animOffset - 5, 10, 2.5);
+        
+        // Energy core
+        ctx.fillStyle = '#00ffff';
+        ctx.beginPath();
+        ctx.arc(0, animOffset - 2, 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Armor glow lines
+        ctx.strokeStyle = 'rgba(255, 170, 68, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-4, animOffset - 6);
+        ctx.lineTo(4, animOffset - 6);
+        ctx.moveTo(-4, animOffset);
+        ctx.lineTo(4, animOffset);
+        ctx.stroke();
+        
+        // Shoulder mounted systems
+        ctx.fillStyle = '#666666';
+        ctx.fillRect(-7, animOffset - 12, 2, 3);
+        ctx.fillRect(5, animOffset - 12, 2, 3);
+    }
+    
+    renderJetpackSoldier(ctx, animOffset, walkCycle) {
+        // Flying Jetpack Trooper
+        
+        // Flight suit body
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-4, animOffset - 8, 8, 12);
+        
+        // Flight helmet
+        ctx.fillStyle = this.darkenColor(this.color, 0.2);
+        ctx.beginPath();
+        ctx.arc(0, animOffset - 10, 5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Clear visor
+        ctx.fillStyle = 'rgba(200, 200, 255, 0.6)';
+        ctx.beginPath();
+        ctx.arc(0, animOffset - 10, 4, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Jetpack
+        ctx.fillStyle = '#333333';
+        ctx.fillRect(-3, animOffset - 6, 6, 10);
+        
+        // Jetpack thrusters
+        const thrusterFlame = Math.sin(this.animationFrame / 30) * 0.5 + 0.5;
+        ctx.fillStyle = `rgba(0, 150, 255, ${thrusterFlame})`;
+        ctx.beginPath();
+        ctx.arc(-2, animOffset + 6, 2, 0, Math.PI * 2);
+        ctx.arc(2, animOffset + 6, 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Wings/stabilizers
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.fillRect(-8, animOffset - 2, 3, 6);
+        ctx.fillRect(5, animOffset - 2, 3, 6);
+        
+        // Assault rifle
+        ctx.fillStyle = '#444444';
+        ctx.fillRect(6, animOffset - 4, 8, 2);
+        
+        // Flight path indicator
+        ctx.strokeStyle = 'rgba(255, 68, 255, 0.6)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 2]);
+        ctx.beginPath();
+        ctx.moveTo(-10, animOffset - 5);
+        ctx.lineTo(-15, animOffset - 8);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        // Altitude indicator
+        ctx.fillStyle = '#ffff00';
+        ctx.font = '8px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('↑', 0, animOffset - 18);
+    }
+    
+    renderBossSoldier(ctx, animOffset, walkCycle) {
+        // Elite Commander - Massive, intimidating
+        
+        // Command armor torso
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-8, animOffset - 12, 16, 20);
+        
+        // Command helmet with crown
+        ctx.fillStyle = this.darkenColor(this.color, 0.3);
+        ctx.fillRect(-8, animOffset - 18, 16, 10);
+        
+        // Crown spikes
+        ctx.fillStyle = '#ffd700';
+        for (let i = 0; i < 5; i++) {
+            const spikeX = -6 + i * 3;
+            ctx.beginPath();
+            ctx.moveTo(spikeX, animOffset - 18);
+            ctx.lineTo(spikeX + 1, animOffset - 22);
+            ctx.lineTo(spikeX + 2, animOffset - 18);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        // Glowing red eyes
+        ctx.fillStyle = '#ff0000';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#ff0000';
+        ctx.beginPath();
+        ctx.arc(-3, animOffset - 14, 2, 0, Math.PI * 2);
+        ctx.arc(3, animOffset - 14, 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        
+        // Massive armored arms
+        ctx.fillStyle = this.darkenColor(this.color, 0.1);
+        ctx.fillRect(-14, animOffset - 10, 6, 14);
+        ctx.fillRect(8, animOffset - 10, 6, 14);
+        
+        // Heavy legs
+        ctx.fillRect(-6, animOffset + 8 + walkCycle * 0.5, 5, 10);
+        ctx.fillRect(1, animOffset + 8 - walkCycle * 0.5, 5, 10);
+        
+        // Massive weapon
+        ctx.fillStyle = '#ff6600';
+        ctx.fillRect(12, animOffset - 8, 16, 4);
+        ctx.fillRect(26, animOffset - 7, 4, 2); // Muzzle
+        
+        // Energy weapon glow
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = '#ff6600';
+        ctx.fillRect(24, animOffset - 6.5, 6, 1);
+        ctx.shadowBlur = 0;
+        
+        // Command armor plating
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.6)';
+        for (let i = 0; i < 3; i++) {
+            ctx.fillRect(-6, animOffset - 6 + i * 4, 12, 2);
+        }
+        
+        // Shoulder mounted missile pods
+        ctx.fillStyle = '#444444';
+        ctx.fillRect(-10, animOffset - 14, 3, 6);
+        ctx.fillRect(7, animOffset - 14, 3, 6);
+        
+        // Commander cape
+        ctx.fillStyle = 'rgba(128, 0, 0, 0.8)';
+        ctx.beginPath();
+        ctx.moveTo(-6, animOffset - 8);
+        ctx.lineTo(-10, animOffset + 6);
+        ctx.lineTo(10, animOffset + 6);
+        ctx.lineTo(6, animOffset - 8);
+        ctx.closePath();
+        ctx.fill();
+    }
+    
+    renderUltraSoldier(ctx, animOffset, walkCycle) {
+        // Elite Ultra Soldier - High-tech
+        
+        // Exosuit torso
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-6, animOffset - 10, 12, 16);
+        
+        // Advanced helmet
+        ctx.fillStyle = this.darkenColor(this.color, 0.2);
+        ctx.beginPath();
+        ctx.arc(0, animOffset - 12, 7, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Multi-spectrum visor
+        const visorColors = ['#ff0000', '#00ff00', '#0000ff'];
+        visorColors.forEach((color, i) => {
+            ctx.fillStyle = color;
+            ctx.globalAlpha = 0.3;
+            ctx.fillRect(-5 + i * 2, animOffset - 14, 3, 2);
+        });
+        ctx.globalAlpha = 1;
+        
+        // Exosuit arms with servos
+        ctx.fillStyle = this.darkenColor(this.color, 0.1);
+        ctx.fillRect(-10, animOffset - 8, 4, 10);
+        ctx.fillRect(6, animOffset - 8, 4, 10);
+        
+        // Servo joints
+        ctx.fillStyle = '#888888';
+        ctx.beginPath();
+        ctx.arc(-8, animOffset - 4, 1.5, 0, Math.PI * 2);
+        ctx.arc(8, animOffset - 4, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Power legs
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-4, animOffset + 6 + walkCycle, 3, 8);
+        ctx.fillRect(1, animOffset + 6 - walkCycle, 3, 8);
+        
+        // Dual weapons
+        ctx.fillStyle = '#8800ff';
+        ctx.fillRect(8, animOffset - 6, 9, 2);
+        ctx.fillRect(8, animOffset - 2, 9, 2);
+        
+        // Energy matrix
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = '#8800ff';
+        for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.arc(-3 + i * 3, animOffset - 4, 1, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.shadowBlur = 0;
+        
+        // Regeneration field
+        if (this.regeneration > 0) {
+            ctx.strokeStyle = 'rgba(0, 255, 0, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, animOffset - 2, this.size + 3, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+    }
+    
+    renderSwarmSoldier(ctx, animOffset, walkCycle) {
+        // Fast Attack Drone Infantry
+        
+        // Compact body
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-3, animOffset - 6, 6, 8);
+        
+        // Tactical helmet
+        ctx.fillStyle = this.darkenColor(this.color, 0.2);
+        ctx.beginPath();
+        ctx.arc(0, animOffset - 8, 3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Targeting laser
+        ctx.fillStyle = '#ff0000';
+        ctx.beginPath();
+        ctx.arc(1, animOffset - 9, 0.5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Light arms
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-5, animOffset - 4, 2, 5);
+        ctx.fillRect(3, animOffset - 4, 2, 5);
+        
+        // Fast legs
+        const swarmLegOffset = walkCycle * 2.5;
+        ctx.fillRect(-2, animOffset + 2 + swarmLegOffset, 1.5, 4);
+        ctx.fillRect(0.5, animOffset + 2 - swarmLegOffset, 1.5, 4);
+        
+        // Compact SMG
+        ctx.fillStyle = '#555555';
+        ctx.fillRect(4, animOffset - 3, 5, 1.5);
+        
+        // Movement trails
+        ctx.strokeStyle = 'rgba(255, 255, 0, 0.4)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 2; i++) {
+            ctx.beginPath();
+            ctx.moveTo(-6 - i * 2, animOffset + i);
+            ctx.lineTo(-9 - i * 2, animOffset + i);
+            ctx.stroke();
+        }
+        
+        // Squad communication array
+        ctx.strokeStyle = '#ffff00';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, animOffset - 11);
+        ctx.lineTo(2, animOffset - 13);
+        ctx.stroke();
+    }
+    
+    renderShieldedSoldier(ctx, animOffset, walkCycle) {
+        // Energy Shield Trooper
+        
+        // Armored body
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-5, animOffset - 9, 10, 14);
+        
+        // Shield generator helmet
+        ctx.fillStyle = this.darkenColor(this.color, 0.2);
+        ctx.fillRect(-6, animOffset - 14, 12, 8);
+        
+        // Shield projection visor
+        ctx.fillStyle = '#00ffff';
+        ctx.fillRect(-4, animOffset - 12, 8, 2);
+        
+        // Shield generator arms
+        ctx.fillStyle = this.darkenColor(this.color, 0.1);
+        ctx.fillRect(-8, animOffset - 7, 3, 8);
+        ctx.fillRect(5, animOffset - 7, 3, 8);
+        
+        // Generator legs
+        ctx.fillRect(-3, animOffset + 5 + walkCycle, 2.5, 7);
+        ctx.fillRect(0.5, animOffset + 5 - walkCycle, 2.5, 7);
+        
+        // Energy weapon
+        ctx.fillStyle = '#00aaff';
+        ctx.fillRect(6, animOffset - 5, 8, 2.5);
+        
+        // Shield projector
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-6, animOffset - 3, 2, 4);
+        
+        // Shield field visualization
+        if (this.shield > 0) {
+            const shieldStrength = this.shield / this.maxShield;
+            ctx.save();
+            ctx.strokeStyle = `rgba(0, 255, 255, ${0.6 * shieldStrength})`;
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 10 * shieldStrength;
+            ctx.shadowColor = '#00ffff';
+            
+            // Hexagonal shield pattern
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = (i / 6) * Math.PI * 2;
+                const x = Math.cos(angle) * (this.size + 4);
+                const y = Math.sin(angle) * (this.size + 4) + animOffset;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+            ctx.restore();
+        }
+        
+        // Power conduits
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.8)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-4, animOffset - 6);
+        ctx.lineTo(4, animOffset - 6);
+        ctx.moveTo(0, animOffset - 8);
+        ctx.lineTo(0, animOffset - 2);
+        ctx.stroke();
+    }
+    
+    darkenColor(color, amount) {
+        // Simple color darkening helper
+        const hex = color.replace('#', '');
+        const num = parseInt(hex, 16);
+        const r = Math.max(0, Math.floor((num >> 16) * (1 - amount)));
+        const g = Math.max(0, Math.floor(((num >> 8) & 0x00FF) * (1 - amount)));
+        const b = Math.max(0, Math.floor((num & 0x0000FF) * (1 - amount)));
+        return `rgb(${r}, ${g}, ${b})`;
     }
     
     renderHealthBar(ctx) {
