@@ -5,7 +5,7 @@ class TowerDefenseGame {
         this.ctx = this.canvas.getContext('2d');
         
         // Game state
-        this.gameState = 'playing'; // playing, paused, gameOver, victory
+        this.gameState = 'menu'; // menu, playing, paused, gameOver, victory
         this.gameSpeed = 1;
         this.lastTime = 0;
         this.deltaTime = 0;
@@ -73,13 +73,8 @@ class TowerDefenseGame {
             item.addEventListener('click', () => this.selectTowerType(item.dataset.tower));
         });
         
-        // Control buttons
-        document.getElementById('startWaveBtn').addEventListener('click', () => this.startNextWave());
-        document.getElementById('pauseBtn').addEventListener('click', () => this.togglePause());
-        document.getElementById('speedBtn').addEventListener('click', () => this.changeGameSpeed());
-        document.getElementById('sellTowerBtn').addEventListener('click', () => this.sellSelectedTower());
-        document.getElementById('upgradeTowerBtn').addEventListener('click', () => this.upgradeSelectedTower());
-        document.getElementById('restartBtn').addEventListener('click', () => this.restartGame());
+        // Control buttons (UI manager will handle these)
+        // Removed duplicate event listeners - UI manager handles all button interactions
     }
     
     handleMouseMove(e) {
@@ -328,7 +323,7 @@ class TowerDefenseGame {
     }
     
     restartGame() {
-        this.gameState = 'playing';
+        this.gameState = 'menu';
         this.playerHealth = 100;
         this.playerMoney = 750;
         this.currentWave = 1;
@@ -350,6 +345,11 @@ class TowerDefenseGame {
         
         if (window.waveManager) {
             window.waveManager.reset();
+        }
+        
+        // Show start menu instead of immediately starting
+        if (window.uiManager) {
+            window.uiManager.showStartMenu();
         }
         
         this.updateUI();
@@ -509,10 +509,8 @@ class TowerDefenseGame {
         this.ctx.arc(this.mouseX, this.mouseY, 5, 0, Math.PI * 2);
         this.ctx.fill();
         
-        // Draw game state overlays
-        if (this.gameState === 'paused') {
-            this.drawPauseOverlay();
-        }
+        // Draw game state overlays (pause menu handled by UI manager now)
+        // Removed simple pause overlay - now using proper pause menu
     }
     
     drawBackground() {
@@ -587,16 +585,6 @@ class TowerDefenseGame {
         this.ctx.setLineDash([]);
     }
     
-    drawPauseOverlay() {
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        this.ctx.fillStyle = 'white';
-        this.ctx.font = 'bold 48px Arial';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText('PAUSED', this.canvas.width / 2, this.canvas.height / 2);
-    }
-    
     spawnDeathParticles(x, y) {
         for (let i = 0; i < 8; i++) {
             const particle = new Particle(
@@ -624,7 +612,15 @@ class TowerDefenseGame {
     start() {
         this.updateUI();
         requestAnimationFrame(this.gameLoop);
-        console.log('Game started!');
+        
+        // Show start menu when game loads
+        setTimeout(() => {
+            if (window.uiManager) {
+                window.uiManager.showStartMenu();
+            }
+        }, 100);
+        
+        console.log('Game started - showing start menu!');
     }
     
     drawTowerTooltip(tower) {
