@@ -3049,18 +3049,8 @@ const canvas = document.getElementById('gameCanvas');
         }
 
         function quitGame() {
-            // Stop the game
-            gameRunning = false;
-            gamePaused = false;
-            
-            // Hide pause overlay
-            document.getElementById('pauseOverlay').style.display = 'none';
-            
-            // Reset pause button
-            document.getElementById('pauseButton').textContent = '⏸';
-            
-            // Show game over screen with final stats
-            gameOver('Game Quit - Thanks for Playing!');
+            // Return to main menu instead of showing game over
+            returnToMenu();
         }
 
         function initGame() {
@@ -3210,8 +3200,33 @@ const canvas = document.getElementById('gameCanvas');
             document.getElementById('pauseOverlay').style.display = 'none';
             document.getElementById('highScoresModal').style.display = 'none';
             
-            // Show start menu
-            document.getElementById('startMenu').style.display = 'flex';
+            // Reset all z-index values to ensure start menu appears correctly
+            const gameCanvas = document.getElementById('gameCanvas');
+            const gameUI = document.getElementById('gameUI');
+            const pauseButton = document.getElementById('pauseButton');
+            const companionButton = document.getElementById('companionButton');
+            const fullscreenButton = document.getElementById('fullscreenButton');
+            const actionControls = document.getElementById('gameActionControls');
+            const startMenu = document.getElementById('startMenu');
+            
+            // Reset canvas and UI z-index
+            if (gameCanvas) {
+                gameCanvas.style.zIndex = '';
+                gameCanvas.style.position = '';
+            }
+            if (gameUI) gameUI.style.zIndex = '';
+            
+            // Reset button z-index
+            if (pauseButton) pauseButton.style.zIndex = '';
+            if (companionButton) companionButton.style.zIndex = '';
+            if (fullscreenButton) fullscreenButton.style.zIndex = '';
+            if (actionControls) actionControls.style.zIndex = '';
+            
+            // Ensure start menu has high z-index to appear on top
+            if (startMenu) {
+                startMenu.style.zIndex = '1000';
+                startMenu.style.display = 'flex';
+            }
             
             // Reset pause button
             document.getElementById('pauseButton').textContent = '⏸';
@@ -3930,6 +3945,7 @@ const canvas = document.getElementById('gameCanvas');
         // Initialize game but don't start automatically
         loadHighScores(); // Load high scores on page load
         // Game will start when user clicks "Start Game" from the start menu
+
 
 
 
